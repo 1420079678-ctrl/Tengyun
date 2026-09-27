@@ -731,11 +731,12 @@
       item.setAttribute('role', 'button');
       item.setAttribute('tabindex', '0');
       item.title = titleFor(run);
-      item.append(svgIcon('terminal'));
-      const content = el('span', 'history-item-content');
-      content.append(el('span', 'history-item-title', titleFor(run)));
-      content.append(el('span', 'history-item-meta', [dayLabel(run.createdAt), RUN_LABELS[run.status] || run.status].filter(Boolean).join(' · ')));
-      item.append(content);
+      // Harness session row: a 16px status slot, then the title, then the time.
+      const slot = el('span', 'history-slot');
+      slot.append(svgIcon(active ? 'spark' : 'terminal'));
+      item.append(slot);
+      item.append(el('span', 'history-item-title', titleFor(run)));
+      item.append(el('span', 'history-item-meta', [dayLabel(run.createdAt), RUN_LABELS[run.status] || run.status].filter(Boolean).join(' · ')));
 
       const delBtn = el('button', 'history-item-del');
       delBtn.type = 'button';
