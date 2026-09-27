@@ -938,14 +938,14 @@ body.review-hidden .review { display: none; }
 }
 .review-head-title { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 22px; color: var(--text); }
 .review-head-icon { display: inline-flex; align-items: center; color: var(--text-3); }
-.review-head-icon svg { width: 20px; height: 20px; }
+.review-head-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.7; }
 .review-head-tools { display: inline-flex; align-items: center; gap: 2px; margin-left: auto; }
 .review-tool {
   display: inline-flex; flex: none; align-items: center; justify-content: center;
   width: 28px; height: 28px; padding: 0; border: 0; border-radius: 28px;
   background: transparent; color: var(--text-3); cursor: pointer;
 }
-.review-tool svg { width: 20px; height: 20px; }
+.review-tool svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.7; }
 .review-tool:hover { color: var(--text); background: var(--bg-hover); }
 .review-tool.active { color: var(--text); background: var(--bg-active); }
 .tab-count { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
@@ -963,9 +963,10 @@ body.review-hidden .review { display: none; }
 .guide { display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center; box-sizing: border-box; min-height: 100%; padding: 0 24px; }
 .guide::after { content: ''; flex: 0 1 10%; }
 .guide[hidden] { display: none; }
-/* The hero is the pane's own coloured artwork, scaled up — not a line glyph in a ring. */
-.guide .hero { display: grid; place-items: center; margin-bottom: 18px; }
-.guide .hero svg { width: 72px; height: 72px; }
+/* Hero: the pane glyph large and faint, the way the harness guide's compass sits — the
+   coloured artwork belongs to the capsules, not blown up here. */
+.guide .hero { display: grid; place-items: center; margin-bottom: 20px; color: var(--line-strong); }
+.guide .hero svg { width: 56px; height: 56px; stroke: currentColor; fill: none; stroke-width: 1.1; }
 .entry { display: flex; gap: 14px; align-items: center; box-sizing: border-box; width: 380px; max-width: 100%; min-height: 56px; padding: 14px 20px; color: var(--text); font: inherit; text-align: left; background: var(--bg-panel); border: .5px solid var(--line); border-radius: 24px; cursor: pointer; transition: background .12s; }
 .entry:hover { background: var(--bg-hover); }
 /* The artwork carries its own tile, so the slot is a bare 26px box with no chrome of its own. */

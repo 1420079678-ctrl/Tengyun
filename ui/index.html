@@ -199,21 +199,21 @@
 
         <aside class="review" id="review-panel" aria-label="审阅面板">
           <div class="review-head">
-            <span class="review-head-title"><span class="review-head-icon" id="review-head-icon"><svg><use href="#g-changes"/></svg></span><span id="review-head-label">变更</span></span>
+            <span class="review-head-title"><span class="review-head-icon" id="review-head-icon"><svg><use href="#i-diff"/></svg></span><span id="review-head-label">变更</span></span>
             <span class="tab-count" id="change-count">0</span>
             <span class="tab-count" id="plan-count" hidden>0</span>
             <span class="tab-count" id="trace-count" hidden>0</span>
             <span class="review-head-tools">
-              <button id="tab-changes" class="review-tool active" role="tab" aria-selected="true" aria-controls="panel-changes" data-pane="changes" title="变更" aria-label="变更"><svg><use href="#g-changes"/></svg></button>
-              <button id="tab-plan" class="review-tool" role="tab" aria-selected="false" aria-controls="panel-plan" data-pane="plan" title="计划" aria-label="计划"><svg><use href="#g-plan"/></svg></button>
-              <button id="tab-trace" class="review-tool" role="tab" aria-selected="false" aria-controls="panel-trace" data-pane="trace" title="终端" aria-label="终端"><svg><use href="#g-terminal"/></svg></button>
+              <button id="tab-changes" class="review-tool active" role="tab" aria-selected="true" aria-controls="panel-changes" data-pane="changes" title="变更" aria-label="变更"><svg><use href="#i-diff"/></svg></button>
+              <button id="tab-plan" class="review-tool" role="tab" aria-selected="false" aria-controls="panel-plan" data-pane="plan" title="计划" aria-label="计划"><svg><use href="#i-list"/></svg></button>
+              <button id="tab-trace" class="review-tool" role="tab" aria-selected="false" aria-controls="panel-trace" data-pane="trace" title="终端" aria-label="终端"><svg><use href="#i-terminal"/></svg></button>
             </span>
           </div>
 
           <section id="panel-changes" class="review-panel" role="tabpanel" aria-labelledby="tab-changes">
             <div class="panel-scroll" id="change-scroll">
               <div class="guide" id="changes-empty">
-                <span class="hero"><svg><use href="#g-changes"/></svg></span>
+                <span class="hero"><svg><use href="#i-diff"/></svg></span>
                 <button class="entry" type="button" data-pane="trace">
                   <span class="entry-icon"><svg><use href="#g-terminal"/></svg></span>
                   <span class="entry-text">
@@ -250,7 +250,7 @@
           <section id="panel-plan" class="review-panel" role="tabpanel" aria-labelledby="tab-plan" hidden>
             <div class="panel-scroll">
               <div class="guide" id="plan-empty">
-                <span class="hero"><svg><use href="#g-plan"/></svg></span>
+                <span class="hero"><svg><use href="#i-list"/></svg></span>
                 <button class="entry" type="button" data-pane="changes">
                   <span class="entry-icon"><svg><use href="#g-changes"/></svg></span>
                   <span class="entry-text">
