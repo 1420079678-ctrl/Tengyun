@@ -1916,12 +1916,21 @@
   }
 
   // ── tabs / theme / shortcuts ────────────────────────────────────────────────
+  // The harness pane header: the active pane's glyph and name on the left, its count beside
+  // them, and the pane switches as round icon tools on the right.
+  const PANE_META = { changes: ['变更', 'diff', 'change-count'], plan: ['计划', 'list', 'plan-count'], trace: ['终端', 'terminal', 'trace-count'] };
   function setTab(name) {
     for (const tab of ['changes', 'plan', 'trace']) {
       const active = name === tab;
       $('tab-' + tab).classList.toggle('active', active);
       $('tab-' + tab).setAttribute('aria-selected', String(active));
       $('panel-' + tab).hidden = !active;
+    }
+    const meta = PANE_META[name];
+    if (meta) {
+      $('review-head-label').textContent = meta[0];
+      $('review-head-icon').firstElementChild.firstElementChild.setAttribute('href', '#i-' + meta[1]);
+      for (const id of ['change-count', 'plan-count', 'trace-count']) $(id).hidden = id !== meta[2];
     }
   }
   function toggleSidebar() {

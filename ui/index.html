@@ -183,22 +183,16 @@
         </section>
 
         <aside class="review" id="review-panel" aria-label="审阅面板">
-          <div class="review-tabs" role="tablist" aria-label="审阅面板">
-            <button id="tab-changes" class="review-tab active" role="tab" aria-selected="true" aria-controls="panel-changes">
-              <svg class="tab-icon"><use href="#i-diff"/></svg>
-              <span>变更</span>
-              <span class="tab-count" id="change-count">0</span>
-            </button>
-            <button id="tab-plan" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-plan">
-              <svg class="tab-icon"><use href="#i-list"/></svg>
-              <span>计划</span>
-              <span class="tab-count" id="plan-count">0</span>
-            </button>
-            <button id="tab-trace" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-trace">
-              <svg class="tab-icon"><use href="#i-terminal"/></svg>
-              <span>终端</span>
-              <span class="tab-count" id="trace-count">0</span>
-            </button>
+          <div class="review-head">
+            <span class="review-head-title"><span class="review-head-icon" id="review-head-icon"><svg><use href="#i-diff"/></svg></span><span id="review-head-label">变更</span></span>
+            <span class="tab-count" id="change-count">0</span>
+            <span class="tab-count" id="plan-count" hidden>0</span>
+            <span class="tab-count" id="trace-count" hidden>0</span>
+            <span class="review-head-tools">
+              <button id="tab-changes" class="review-tool active" role="tab" aria-selected="true" aria-controls="panel-changes" data-pane="changes" title="变更" aria-label="变更"><svg><use href="#i-diff"/></svg></button>
+              <button id="tab-plan" class="review-tool" role="tab" aria-selected="false" aria-controls="panel-plan" data-pane="plan" title="计划" aria-label="计划"><svg><use href="#i-list"/></svg></button>
+              <button id="tab-trace" class="review-tool" role="tab" aria-selected="false" aria-controls="panel-trace" data-pane="trace" title="终端" aria-label="终端"><svg><use href="#i-terminal"/></svg></button>
+            </span>
           </div>
 
           <section id="panel-changes" class="review-panel" role="tabpanel" aria-labelledby="tab-changes">
@@ -320,12 +314,12 @@
       </div>
 
       <div class="settings-tabs" role="tablist">
-        <button type="button" class="settings-tab" data-tab="tab-general">通用</button>
-        <button type="button" class="settings-tab active" data-tab="tab-providers">提供商与模型</button>
-        <button type="button" class="settings-tab" data-tab="tab-skills">技能</button>
-        <button type="button" class="settings-tab" data-tab="tab-cognitive">智能体与推理</button>
-        <button type="button" class="settings-tab" data-tab="tab-policy">运行与安全</button>
-        <button type="button" class="settings-tab" data-tab="tab-appearance">界面外观</button>
+        <button type="button" class="settings-tab" data-tab="tab-general"><svg class="nav-icon"><use href="#i-settings"/></svg><span class="nav-label">通用</span></button>
+        <button type="button" class="settings-tab active" data-tab="tab-providers"><svg class="nav-icon"><use href="#i-cpu"/></svg><span class="nav-label">提供商与模型</span></button>
+        <button type="button" class="settings-tab" data-tab="tab-skills"><svg class="nav-icon"><use href="#i-layers"/></svg><span class="nav-label">技能</span></button>
+        <button type="button" class="settings-tab" data-tab="tab-cognitive"><svg class="nav-icon"><use href="#i-spark"/></svg><span class="nav-label">智能体与推理</span></button>
+        <button type="button" class="settings-tab" data-tab="tab-policy"><svg class="nav-icon"><use href="#i-shield"/></svg><span class="nav-label">运行与安全</span></button>
+        <button type="button" class="settings-tab" data-tab="tab-appearance"><svg class="nav-icon"><use href="#i-panel"/></svg><span class="nav-label">界面外观</span></button>
       </div>
 
       <div class="settings-tab-content" id="tab-general" hidden>
