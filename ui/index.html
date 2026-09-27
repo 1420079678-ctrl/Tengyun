@@ -15,6 +15,7 @@
     <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></symbol>
     <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m10 8 4 4-4 4"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.6" fill="currentColor" stroke="none"/></symbol>
     <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m5 7 4 4-4 4m6 0h7"/></symbol>
     <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8Zm0 0v5h5"/></symbol>
     <symbol id="i-diff" viewBox="0 0 24 24"><path d="M7 4v11m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0-8h4m9 3v11m0 0a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0-8h-4"/></symbol>
@@ -29,6 +30,11 @@
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/></symbol>
     <symbol id="i-rewrite" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8m0-4v4h-4M20 12a8 8 0 0 1-13.7 5.7L4 16m0 4v-4h4"/></symbol>
     <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol>
   </svg>
 
   <div class="app">
@@ -38,7 +44,7 @@
         <button class="icon-button subtle" id="collapse-sidebar" title="收起侧栏" aria-label="收起侧栏"><svg><use href="#i-sidebar"/></svg></button>
       </div>
 
-      <button class="new-task" id="new-task"><svg><use href="#i-plus"/></svg><span>新建任务</span><kbd>N</kbd></button>
+      <button class="new-task" id="new-task"><svg><use href="#i-plus"/></svg><span>新建任务</span></button>
 
       <div class="thread-scroll">
         <div class="thread-label"><span>任务</span><span id="run-count">0</span></div>
@@ -46,14 +52,17 @@
       </div>
 
       <div class="sidebar-foot">
-        <button class="workspace-button" id="choose-workspace" title="切换工作目录">
-          <svg class="mono-icon"><use href="#i-folder"/></svg>
-          <span class="workspace-text"><span class="workspace-name" id="workspace-label">选择工作目录</span></span>
+        <button class="workspace-button" id="choose-workspace" title="项目与工作区管理">
+          <svg class="mono-icon"><use href="#i-layers"/></svg>
+          <span class="workspace-text">
+            <span class="workspace-name" id="workspace-label">项目管理</span>
+            <span class="workspace-sub" id="workspace-sub">0 个项目</span>
+          </span>
           <svg class="chevron"><use href="#i-chevron-down"/></svg>
         </button>
-        <button class="account-button" id="open-settings">
+        <button class="account-button" id="open-settings" title="设置">
           <span class="account-avatar">T</span>
-          <span class="account-text"><span class="account-model" id="sidebar-model">未配置模型</span><span class="account-meta" id="version">v0.1.0</span></span>
+          <span class="account-text"><span class="account-model" id="sidebar-model">本机账户</span><span class="account-meta" id="version">v0.2.0</span></span>
           <svg class="chevron"><use href="#i-settings"/></svg>
         </button>
       </div>
@@ -63,13 +72,19 @@
       <header class="topbar">
         <div class="topbar-left">
           <button class="icon-button subtle" id="expand-sidebar" title="展开侧栏" aria-label="展开侧栏" hidden><svg><use href="#i-sidebar"/></svg></button>
-          <div class="crumbs"><span class="crumb-path" id="topbar-workspace">—</span><span class="crumb-sep">/</span><strong id="task-title">新建任务</strong></div>
+          <div class="crumbs">
+            <button class="crumb-project-btn" id="crumb-project-btn" title="点击切换项目">
+              <svg class="crumb-icon"><use href="#i-folder"/></svg>
+              <span class="crumb-path" id="topbar-workspace">—</span>
+            </button>
+            <span class="crumb-sep">/</span>
+            <strong id="task-title">新建任务</strong>
+            <button class="icon-button subtle" id="delete-current-task" type="button" title="删除当前任务" hidden><svg><use href="#i-trash"/></svg></button>
+          </div>
         </div>
         <div class="topbar-right">
-          <button class="pill" id="composer-settings" title="模型与运行设置"><span class="pill-dot"></span><span id="composer-model">选择模型</span><svg class="chevron"><use href="#i-chevron-down"/></svg></button>
-          <span class="pill ghost" id="perm-pill" title="运行权限模式"><svg><use href="#i-shield"/></svg><span id="perm-label">每次确认</span></span>
-          <button class="icon-button subtle" id="toggle-theme" title="切换主题" aria-label="切换主题"><svg><use href="#i-rewrite"/></svg></button>
-          <button class="icon-button subtle" id="toggle-inspector" aria-expanded="true" title="显示审阅面板" aria-label="显示审阅面板"><svg><use href="#i-panel"/></svg></button>
+          <button class="icon-button subtle" id="toggle-theme" title="切换主题外观" aria-label="切换主题外观"><svg><use href="#i-rewrite"/></svg></button>
+          <button class="icon-button subtle" id="toggle-inspector" aria-expanded="true" title="显示/隐藏审阅面板" aria-label="显示/隐藏审阅面板"><svg><use href="#i-panel"/></svg></button>
         </div>
       </header>
 
@@ -77,61 +92,132 @@
         <section class="chat" aria-label="任务对话">
           <div class="connection-banner" id="connection-banner" hidden></div>
           <div class="chat-scroll" id="conversation-scroll">
-            <section class="empty-state" id="welcome">
-              <h1>描述任务，Tengyun 直接动手</h1>
-              <p>它会自己列计划、读写文件、跑命令，每一步都留下可核对的执行证据。</p>
-              <div class="starter-grid">
-                <button class="starter" data-prompt="先阅读当前项目的目录和关键文件，说明项目结构、启动方式和主要模块。只分析，不要修改文件。"><span class="starter-title">读懂这个项目</span><span class="starter-desc">梳理结构与入口</span></button>
-                <button class="starter" data-prompt="帮我定位并修复当前项目的问题。先检查相关代码、文档和现有测试，给出执行计划；修改后运行相关检查并说明结果。问题描述："><span class="starter-title">修一个问题</span><span class="starter-desc">定位、修改、验证</span></button>
-                <button class="starter" data-prompt="帮我完成一个本地文件处理任务。先检查工作目录并提出可执行计划，写入文件或执行命令前展示具体内容让我确认。任务："><span class="starter-title">处理本地任务</span><span class="starter-desc">文件、命令、自动化</span></button>
-              </div>
+            <section class="welcome-simple" id="welcome">
+              <h1>从哪里开始？</h1>
+              <p>描述你的任务，一起把它完成。</p>
             </section>
             <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions"></div>
           </div>
 
           <div class="composer-wrap">
-            <div class="run-bar" id="run-progress" hidden>
-              <span class="pulse-dot"></span>
-              <span id="run-progress-text">正在执行</span>
-              <span class="run-meta" id="run-steps"></span>
-              <button class="stop-button" id="cancel-run">停止</button>
-            </div>
             <form class="composer" id="task-form">
               <label class="sr-only" for="task-input">描述任务</label>
-              <textarea id="task-input" rows="2" placeholder="描述一个任务，或粘贴报错、日志、需求…" maxlength="50000"></textarea>
+              <div class="composer-attachments" id="composer-attachments" hidden></div>
+              <textarea id="task-input" rows="2" placeholder="输入任务，或拖入文件…" maxlength="50000"></textarea>
               <div class="composer-bar">
                 <div class="composer-left">
-                  <button class="chip" id="composer-model-chip" type="button" title="运行设置"><span class="chip-dot"></span><span id="composer-model-chip-text">模型</span></button>
-                  <span class="composer-hint" id="composer-hint">Enter 发送 · Shift+Enter 换行</span>
+          <!-- Fast Model Switch Dropdown Trigger -->
+          <div class="dropdown-wrap" id="model-dropdown-wrap">
+            <button class="pill" id="composer-settings" type="button" title="点击快捷切换模型与服务商" aria-haspopup="true" aria-expanded="false">
+              <span class="pill-dot"></span>
+              <span id="composer-model">选择模型</span>
+              <svg class="chevron"><use href="#i-chevron-down"/></svg>
+            </button>
+            <div class="popover-menu" id="model-quick-menu" hidden>
+              <div class="popover-header">
+                <span>切换活跃模型</span>
+                <span class="popover-meta" id="model-quick-provider-count">服务商</span>
+              </div>
+              <div class="popover-list" id="model-quick-list"></div>
+              <div class="popover-footer">
+                <button type="button" class="popover-action-btn" id="quick-open-settings">
+                  <svg class="inline-svg"><use href="#i-settings"/></svg>
+                  <span>管理提供商与模型…</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Permission Mode Dropdown Trigger (Interactive, not a dummy decoration!) -->
+          <div class="dropdown-wrap" id="perm-dropdown-wrap">
+            <button class="pill pill-perm" id="perm-pill" type="button" title="点击切换运行权限控制" aria-haspopup="true" aria-expanded="false">
+              <svg class="perm-icon"><use href="#i-shield"/></svg>
+              <span id="perm-label">每次确认</span>
+              <svg class="chevron"><use href="#i-chevron-down"/></svg>
+            </button>
+            <div class="popover-menu perm-menu" id="perm-quick-menu" hidden>
+              <div class="popover-header">
+                <span>安全与执行权限控制</span>
+              </div>
+              <div class="popover-options">
+                <button type="button" class="popover-option active" data-perm="always">
+                  <div class="opt-head">
+                    <span class="opt-title">每次确认 (Always)</span>
+                    <span class="badge badge-info">默认高安全</span>
+                  </div>
+                  <span class="opt-desc">写入文件或执行命令前均弹窗等待授权确认。</span>
+                </button>
+                <button type="button" class="popover-option" data-perm="session">
+                  <div class="opt-head">
+                    <span class="opt-title">本次任务信任同类 (Session)</span>
+                    <span class="badge badge-warn">高效率</span>
+                  </div>
+                  <span class="opt-desc">同类写文件或命令操作在本次任务仅确认一次，其余自动放行。</span>
+                </button>
+                <button type="button" class="popover-option" data-perm="never">
+                  <div class="opt-head">
+                    <span class="opt-title">全自动自主执行 (Auto)</span>
+                    <span class="badge badge-pass">全自主</span>
+                  </div>
+                  <span class="opt-desc">自主连续编辑、执行自检自愈，无需打断询问。</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+
+                  <button class="chip" id="composer-model-chip" type="button" title="点击切换模型"><span class="chip-dot"></span><span id="composer-model-chip-text">模型</span></button>
+                  <button class="icon-button subtle attach-btn" id="attach-button" type="button" title="上传图片或文件 (支持拖拽与截图粘贴)"><svg><use href="#i-paperclip"/></svg></button>
+                  <button class="chip" type="button" id="composer-skills" title="管理与使用技能">技能</button>
+                  <input type="file" id="file-picker-input" hidden multiple accept="image/*,.txt,.md,.json,.js,.ts,.jsx,.tsx,.py,.java,.c,.cpp,.rs,.go,.html,.css,.yml,.yaml,.toml,.log,.csv,.sql,.sh,.bat,.ps1,.pdf">
+                  <span class="composer-hint" id="composer-hint"><kbd>↵</kbd> 发送 · <kbd>⇧↵</kbd> 换行</span>
                 </div>
                 <div class="composer-right">
+                  <button class="stop-button" id="cancel-run" type="button" aria-label="停止执行" title="停止执行（Esc）" hidden><svg><use href="#i-stop"/></svg></button>
                   <button class="send-button" id="send-task" type="submit" aria-label="发送"><svg><use href="#i-send"/></svg></button>
                 </div>
               </div>
             </form>
+            <div class="usage-strip" aria-live="polite"><span id="token-summary">Token · 暂无用量</span><button type="button" id="balance-summary" title="点击刷新当前提供商余额">余额 · 点击查询</button></div>
           </div>
         </section>
 
         <aside class="review" id="review-panel" aria-label="审阅面板">
           <div class="review-tabs" role="tablist" aria-label="审阅面板">
-            <button id="tab-changes" class="review-tab active" role="tab" aria-selected="true" aria-controls="panel-changes">变更<span class="tab-count" id="change-count">0</span></button>
-            <button id="tab-plan" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-plan">计划<span class="tab-count" id="plan-count">0</span></button>
-            <button id="tab-trace" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-trace">终端<span class="tab-count" id="trace-count">0</span></button>
+            <button id="tab-changes" class="review-tab active" role="tab" aria-selected="true" aria-controls="panel-changes">
+              <svg class="tab-icon"><use href="#i-diff"/></svg>
+              <span>变更</span>
+              <span class="tab-count" id="change-count">0</span>
+            </button>
+            <button id="tab-plan" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-plan">
+              <svg class="tab-icon"><use href="#i-list"/></svg>
+              <span>计划</span>
+              <span class="tab-count" id="plan-count">0</span>
+            </button>
+            <button id="tab-trace" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-trace">
+              <svg class="tab-icon"><use href="#i-terminal"/></svg>
+              <span>终端</span>
+              <span class="tab-count" id="trace-count">0</span>
+            </button>
           </div>
 
           <section id="panel-changes" class="review-panel" role="tabpanel" aria-labelledby="tab-changes">
             <div class="panel-scroll" id="change-scroll">
-              <div class="empty-note" id="changes-empty">文件改动会在这里以 diff 形式呈现。</div>
+              <p class="panel-hint" id="changes-empty">任务修改的文件会在这里以 diff 展示。</p>
               <div id="change-list"></div>
+            </div>
+            <div class="panel-actions" id="change-actions" hidden>
+              <span class="panel-actions-note" id="revert-note">每次写入都留有备份</span>
+              <button class="button danger" id="revert-run" type="button">回滚本次全部改动</button>
             </div>
           </section>
 
           <section id="panel-plan" class="review-panel" role="tabpanel" aria-labelledby="tab-plan" hidden>
             <div class="panel-scroll">
+              <p class="panel-hint" id="plan-empty">执行步骤会显示在这里。</p>
               <ol class="plan-list" id="plan-list"></ol>
-              <div class="empty-note" id="plan-empty">任务开始后，执行计划会出现在这里。</div>
               <div class="evidence-block">
-                <div class="section-label">执行证据<span id="evidence-count">0</span></div>
+                <div class="section-label"><span>执行记录</span><span class="tab-count" id="evidence-count">0</span></div>
                 <div id="evidence-list"></div>
               </div>
             </div>
@@ -143,7 +229,7 @@
 
           <div class="review-foot">
             <span class="state-pill" id="run-state">待命</span>
-            <span class="review-foot-note">结果以工具实际返回为准</span>
+            <span class="review-foot-note"></span>
           </div>
         </aside>
       </div>
@@ -155,43 +241,203 @@
     </main>
   </div>
 
-  <dialog id="settings-dialog" class="modal" aria-labelledby="settings-title">
+  <!-- Multi-Project Management Dialog -->
+  <dialog id="project-dialog" class="modal" aria-labelledby="project-title">
+    <div class="modal-header">
+      <div><div class="eyebrow">WORKSPACES</div><h2 id="project-title">项目</h2></div>
+      <button class="icon-button" id="close-projects" type="button" aria-label="关闭"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="project-dialog-body">
+      <div class="project-active-card">
+        <div class="project-card-header">
+          <span class="badge badge-pass">当前主工作区</span>
+          <span class="project-branch-tag" id="current-project-branch">main</span>
+        </div>
+        <h3 class="project-card-name" id="current-project-name">—</h3>
+        <p class="crumb-path project-card-path" id="current-project-path">—</p>
+      </div>
+
+      <div class="section-label-row">
+        <span class="section-label">已挂载的项目列表</span>
+        <span class="tab-count" id="project-count">0</span>
+      </div>
+      <div class="project-list" id="project-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="button" id="add-project-btn" type="button"><svg class="inline-svg"><use href="#i-plus"/></svg> 添加/挂载新项目…</button>
+      <button class="button primary" id="close-projects-btn" type="button">完成</button>
+    </div>
+  </dialog>
+
+  <!-- Multi-Provider & Cognitive Kernel Settings Dialog -->
+  <dialog id="settings-dialog" class="modal modal-lg" aria-labelledby="settings-title">
     <form id="settings-form">
       <div class="modal-header">
-        <div><div class="eyebrow">MODEL</div><h2 id="settings-title">模型与运行设置</h2></div>
+        <div><div class="eyebrow">SETTINGS</div><h2 id="settings-title">设置</h2></div>
         <button class="icon-button" id="close-settings" type="button" aria-label="关闭"><svg><use href="#i-x"/></svg></button>
       </div>
-      <div class="field"><label for="setting-base-url">API 地址</label><input id="setting-base-url" type="url" placeholder="https://api.deepseek.com/v1" required autocomplete="off"></div>
-      <div class="field"><label for="setting-api-key">API 密钥<span id="key-hint" class="field-hint">仅用于连接模型</span></label><input id="setting-api-key" type="password" placeholder="输入 API Key" autocomplete="new-password" spellcheck="false"></div>
-      <div class="field"><label for="setting-model">模型名称</label><input id="setting-model" type="text" placeholder="deepseek-chat" required autocomplete="off" spellcheck="false"></div>
-      <div class="field-row">
-        <div class="field"><label for="setting-max-steps">单次任务最大轮数</label><input id="setting-max-steps" type="number" min="1" max="200" value="60" required><p class="field-help">到达上限后停止，防止无限循环。</p></div>
-        <div class="field"><label for="setting-approval">写入与命令</label><select id="setting-approval">
-          <option value="always">每次确认</option>
-          <option value="session">本次任务信任同类操作</option>
-          <option value="never">全部自动执行</option>
-        </select><p class="field-help" id="approval-help">每次涉及写入或命令时询问你。</p></div>
+
+      <div class="settings-tabs" role="tablist">
+        <button type="button" class="settings-tab" data-tab="tab-general">通用</button>
+        <button type="button" class="settings-tab active" data-tab="tab-providers">提供商与模型</button>
+        <button type="button" class="settings-tab" data-tab="tab-skills">技能</button>
+        <button type="button" class="settings-tab" data-tab="tab-cognitive">智能体与推理</button>
+        <button type="button" class="settings-tab" data-tab="tab-policy">运行与安全</button>
+        <button type="button" class="settings-tab" data-tab="tab-appearance">界面外观</button>
       </div>
-      <div class="field">
-        <label>界面风格<span class="field-hint" id="appearance-hint">默认浅色</span></label>
-        <div class="segmented" id="appearance-group" role="radiogroup" aria-label="界面风格">
-          <button type="button" class="segment" data-appearance="light">浅色</button>
-          <button type="button" class="segment" data-appearance="dark">深色</button>
-          <button type="button" class="segment" data-appearance="wallpaper">壁纸</button>
+
+      <div class="settings-tab-content" id="tab-general" hidden>
+        <div class="field"><h3>本机账户</h3><p id="local-account-name">本机用户</p><p class="field-help">使用当前 Windows 账户，无需注册或登录。</p></div>
+        <div class="field"><h3>本地存储</h3><p class="field-help">任务和配置保存在本机。模型请求发送到你选择的提供商。</p></div>
+      </div>
+      <div class="settings-tab-content" id="tab-skills" hidden>
+        <h3>技能</h3>
+        <p class="field-help">导入包含 SKILL.md 的文件夹，或将成功经验整理为技能。启用后可用 /技能名 或 $技能名调用，也可由智能体按任务选择。</p>
+        <div class="skill-actions"><button class="button" type="button" id="skill-import">导入文件夹</button><button class="button" type="button" id="skill-new">新建技能</button><button class="button ghost" type="button" id="skill-refresh">刷新</button></div>
+        <div id="skill-list" class="skill-list" aria-label="已安装技能"></div>
+        <p id="skill-error" class="form-error" role="alert" hidden></p>
+        <div id="skill-editor-panel" hidden>
+          <div class="skill-editor-head"><strong id="skill-editor-title">新建技能</strong><span id="skill-status" class="field-hint"></span></div>
+          <label for="skill-content">SKILL.md</label>
+          <textarea id="skill-content" spellcheck="false" rows="12" aria-label="技能正文"></textarea>
+          <p class="field-help">保存为停用草稿；检查内容后启用。编辑已启用技能会使其停用。变更从下一次发送消息起生效。</p>
+          <div class="skill-actions"><button class="button" type="button" id="skill-save">保存草稿</button><button class="button" type="button" id="skill-toggle">启用</button><button class="button ghost" type="button" id="skill-use">在任务中使用</button><button class="button ghost" type="button" id="skill-remove">移除</button></div>
+          <details id="skill-resources-panel"><summary>附带资源（只读预览）</summary><select id="skill-resource-select" aria-label="技能资源"></select><pre id="skill-resource-preview"></pre></details>
         </div>
       </div>
-      <div class="field" id="wallpaper-field">
-        <label>壁纸图片<span class="field-hint" id="wallpaper-hint">未选择</span></label>
-        <div class="wallpaper-row">
-          <button type="button" class="button" id="pick-wallpaper">选择图片…</button>
-          <button type="button" class="button ghost" id="remove-wallpaper">移除壁纸</button>
+      <!-- Tab 1: Providers -->
+      <div class="settings-tab-content active" id="tab-providers">
+        <div class="field">
+          <label>选择当前使用的服务商 <span class="field-hint">除预设外，可自行添加任意 OpenAI 兼容端点</span></label>
+          <div class="provider-selector-grid" id="provider-selector-grid"></div>
+          <div class="provider-list-actions">
+            <button type="button" class="button" id="add-provider-btn"><svg class="inline-svg"><use href="#i-plus"/></svg> 添加服务商</button>
+          </div>
+        </div>
+
+        <div class="provider-edit-card">
+          <div class="field">
+            <label for="setting-provider-name">服务商名称 <span class="field-hint">用于在列表中识别提供商</span></label>
+            <input id="setting-provider-name" type="text" placeholder="例如 公司内部推理网关" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="setting-base-url">API 接口地址 <span class="field-hint">支持官方端点、聚合中继或本地 vLLM/Ollama</span></label>
+            <input id="setting-base-url" type="url" placeholder="https://api.deepseek.com/v1" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="setting-api-key">API 密钥 <span id="key-hint" class="field-hint">Windows DPAPI 凭据级加密保存</span></label>
+            <input id="setting-api-key" type="password" placeholder="输入 API Key" autocomplete="new-password" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="setting-model">模型名称 <span class="field-hint">例如 deepseek-chat, deepseek-reasoner, gpt-4o</span></label>
+            <div class="model-input-group">
+              <input id="setting-model" type="text" placeholder="deepseek-chat" required autocomplete="off" spellcheck="false">
+              <select id="setting-model-presets" title="选择获取到的模型"></select>
+              <button type="button" class="button" id="fetch-models">获取模型</button>
+            </div>
+          </div>
+          <p class="field-help" id="models-fetch-status" role="status"></p>
+        <div class="provider-action-row">
+            <button type="button" class="button" id="test-provider-btn">测试端点连通性</button>
+            <span class="test-result-pill" id="test-result-pill" hidden></span>
+            <button type="button" class="button" id="delete-provider-btn">删除此服务商</button>
+          </div>
         </div>
       </div>
+
+      <!-- Tab 2: Cognitive Architecture -->
+      <div class="settings-tab-content" id="tab-cognitive" hidden>
+        <div class="field">
+          <label for="setting-reasoning-effort">推理强度</label>
+          <select id="setting-reasoning-effort"><option value="default">由模型决定（兼容性最佳）</option><option value="low">低</option><option value="medium">中</option><option value="high">高</option></select>
+          <p class="field-help">向兼容接口传递 reasoning_effort。是否支持取决于模型；请求被拒绝时使用模型默认值重试。</p>
+        </div>
+        <div class="field checkbox-row"><input type="checkbox" id="setting-show-reasoning"><label for="setting-show-reasoning">显示提供商返回的思考内容（默认折叠）</label></div>
+        <div class="field"><div class="checkbox-row"><input type="checkbox" id="setting-agents-enabled"><label for="setting-agents-enabled">允许子智能体分工</label></div><p class="field-help">探查、规划、审查使用独立上下文；同批最多 3 个，每条消息最多 6 个，每个最多 12 轮、120 秒。子智能体只读，主智能体负责修改。会增加模型调用用量。</p></div>
+        <div class="cognitive-intro">
+          <strong>可选模型配置</strong>
+          <p>可以为规划和请求失败时的重试指定其他提供商。</p>
+        </div>
+
+        <div class="field">
+          <label for="setting-planner-provider">规划模型</label>
+          <select id="setting-planner-provider">
+            <option value="">跟随主服务商（推荐）</option>
+          </select>
+          <p class="field-help">用于大纲规划、复杂系统重构与深度思考推演（推荐 DeepSeek-R1 / o1 / reasoner）。</p>
+        </div>
+
+        <div class="field">
+          <label for="setting-fallback-provider">备用提供商</label>
+          <select id="setting-fallback-provider">
+            <option value="">不启用自动故障降级</option>
+          </select>
+          <p class="field-help">当主模型遇到 HTTP 429 速率限制或网关超时时，自动透明无损切换到备用服务商。</p>
+        </div>
+
+        <div class="field">
+          <div class="checkbox-row">
+            <input type="checkbox" id="setting-self-healing" checked disabled>
+            <label for="setting-self-healing">错误诊断（内置）</label>
+          </div>
+          <p class="field-help">测试失败或命令报错时，自动解析堆栈、判定根因（语法/依赖/断言）并注入修复建议，杜绝盲目重试。</p>
+        </div>
+      </div>
+
+      <!-- Tab 3: Policy -->
+      <div class="settings-tab-content" id="tab-policy" hidden>
+        <div class="field-row">
+          <div class="field">
+            <label for="setting-max-steps">单次任务最大轮数</label>
+            <input id="setting-max-steps" type="number" min="0" max="100000" value="0" required>
+            <p class="field-help">0 = 不限制轮数，跑到模型自主完成为止。</p>
+          </div>
+          <div class="field">
+            <label for="setting-approval">写入与命令安全控制</label>
+            <select id="setting-approval">
+              <option value="always">每次确认</option>
+              <option value="session">本次任务信任同类操作</option>
+              <option value="never">全部自动执行</option>
+            </select>
+            <p class="field-help" id="approval-help">每次涉及写入或命令时询问你。</p>
+          </div>
+        </div>
+        <div class="field">
+          <div class="checkbox-row">
+            <input type="checkbox" id="setting-streaming" checked>
+            <label for="setting-streaming">逐步显示模型输出</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Appearance -->
+      <div class="settings-tab-content" id="tab-appearance" hidden>
+        <div class="field">
+          <label>界面风格 <span class="field-hint" id="appearance-hint">默认深色</span></label>
+          <div class="segmented" id="appearance-group" role="radiogroup" aria-label="界面风格">
+            <button type="button" class="segment" data-appearance="light">浅色</button>
+            <button type="button" class="segment" data-appearance="dark">深色</button>
+            <button type="button" class="segment" data-appearance="wallpaper">壁纸</button>
+          </div>
+        </div>
+        <div class="field" id="wallpaper-field">
+          <label>壁纸图片 <span class="field-hint" id="wallpaper-hint">未选择</span></label>
+          <div class="wallpaper-row">
+            <button type="button" class="button" id="pick-wallpaper">选择图片…</button>
+            <button type="button" class="button ghost" id="remove-wallpaper">移除壁纸</button>
+          </div>
+        </div>
+      </div>
+
       <p id="settings-error" class="form-error" role="alert" hidden></p>
-      <div class="modal-footer"><button class="button ghost" type="button" id="close-settings-2">取消</button><button class="button primary" id="save-settings" type="submit">保存</button></div>
+      <div class="modal-footer">
+        <button class="button ghost" type="button" id="close-settings-2">取消</button>
+        <button class="button primary" id="save-settings" type="submit">保存并应用</button>
+      </div>
     </form>
   </dialog>
 
+  <!-- Approval Dialog -->
   <dialog id="approval-dialog" class="modal approval" aria-labelledby="approval-title">
     <div class="modal-header">
       <div><div class="eyebrow">APPROVAL</div><h2 id="approval-title">确认这一次操作</h2></div>

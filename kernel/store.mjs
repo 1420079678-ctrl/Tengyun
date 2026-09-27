@@ -166,6 +166,14 @@ export function createStore(dataDir) {
       const events = await loadEvents(id)
       return { ...record, events, transcript: record.transcript ?? record.messages ?? transcriptFrom(events) }
     },
+    async deleteRun(id) {
+      const cleanId = validId(id)
+      const directory = runDir(cleanId)
+      return serial(metadataFile(cleanId), async () => {
+        await fs.rm(directory, { recursive: true, force: true })
+        return { ok: true, id: cleanId }
+      })
+    },
     async listRuns({ limit = 100 } = {}) {
       let entries
       try { entries = await fs.readdir(runsRoot, { withFileTypes: true }) }

@@ -123,3 +123,127 @@ test('store redacts credentials and can recover a truncated final event', async 
   assert.equal(restored.events[0].content, '[REDACTED]')
   await assert.rejects(f.store.writeSettings({ apiKey: 'not-encrypted' }), /Plaintext/)
 })
+
+test('multi-turn continuation preserves history and appends to the same run', async () => {
+  const f = await fixture()
+  let turn = 0
+  const engine = new AgentEngine({ ...f, fetchImpl: async (_url, options) => {
+    turn++
+    const body = JSON.parse(options.body)
+    if (turn === 1) return response('第一轮回答：我已经就绪。')
+    // On continuation, history should contain the prior messages
+    const hasPriorAssistant = body.messages.some(m => m.role === 'assistant' && m.content.includes('第一轮回答'))
+    assert.ok(hasPriorAssistant, 'Continuation request must include prior assistant turn')
+    return response('第二轮回答：继续为您服务。')
+  } })
+
+  // Turn 1
+  const run1 = await engine.run({ input: '第一轮提问', workspace: f.workspace, config })
+  assert.equal(run1.status, 'completed')
+  const saved1 = await f.store.getRun(run1.id)
+  assert.ok(saved1.events.length > 0)
+
+  // Turn 2: Continuation
+  const run2 = await engine.run({
+    id: run1.id,
+    input: '第二轮提问',
+    workspace: f.workspace,
+    config,
+    priorRun: saved1,
+    isContinuation: true,
+  })
+  assert.equal(run2.id, run1.id, 'Continuation must maintain the same conversation ID')
+  assert.equal(run2.status, 'completed')
+
+  const saved2 = await f.store.getRun(run1.id)
+  const userMessages = saved2.events.filter(e => e.type === 'run:message' && e.role === 'user')
+  assert.equal(userMessages.length, 2, 'Should have both user turns in the same event log')
+  const assistantMessages = saved2.events.filter(e => e.type === 'run:message' && e.role === 'assistant')
+  assert.equal(assistantMessages.length, 2, 'Should have both assistant responses in the same event log')
+})
+
+test('concurrent parallel tasks run simultaneously without interference', async () => {
+  const f = await fixture()
+  const engine = new AgentEngine({ ...f, fetchImpl: async (_url, options) => {
+    const body = JSON.parse(options.body)
+    const userPrompt = body.messages.find(m => m.role === 'user')?.content || ''
+    // Simulate slight async delay
+    await new Promise(r => setTimeout(r, 20))
+    return response(`处理完成: ${userPrompt}`)
+  } })
+
+  const [p1, p2] = await Promise.all([
+    engine.run({ input: '任务A', workspace: f.workspace, config }),
+    engine.run({ input: '任务B', workspace: f.workspace, config }),
+  ])
+
+  assert.notEqual(p1.id, p2.id, 'Parallel runs must have distinct IDs')
+  assert.equal(p1.status, 'completed')
+  assert.equal(p2.status, 'completed')
+  assert.match(p1.output, /任务A/)
+  assert.match(p2.output, /任务B/)
+})
+
+test('store.deleteRun safely removes task directory and history', async () => {
+  const f = await fixture()
+  const runRecord = await f.store.createRun({ input: '待删除任务' })
+  await f.store.appendEvent(runRecord.id, { type: 'run:message', role: 'user', content: '测试内容' })
+
+  const listBefore = await f.store.listRuns()
+  assert.ok(listBefore.some(r => r.id === runRecord.id))
+
+  const delResult = await f.store.deleteRun(runRecord.id)
+  assert.equal(delResult.ok, true)
+  assert.equal(delResult.id, runRecord.id)
+
+  const listAfter = await f.store.listRuns()
+  assert.ok(!listAfter.some(r => r.id === runRecord.id), 'Deleted run must not be present in listRuns')
+
+  const fetched = await f.store.getRun(runRecord.id)
+  assert.equal(fetched, null, 'Deleted run must return null on getRun')
+})
+
+test('AgentEngine.run processes attachments and passes multimodal image_url and file previews', async () => {
+  const f = await fixture()
+  let capturedBody = null
+  const engine = new AgentEngine({
+    ...f,
+    fetchImpl: async (_url, options) => {
+      capturedBody = JSON.parse(options.body)
+      return response('已成功分析上传的图片与代码文件。')
+    },
+  })
+
+  const fakeAttachments = [
+    { name: 'mockup.png', size: 10240, ext: 'png', isImage: true, dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' },
+    { name: 'config.json', size: 512, ext: 'json', isImage: false, textContent: '{\n  "version": "1.0.0"\n}' },
+  ]
+
+  const run = await engine.run({
+    input: '请根据原型图和配置文件进行开发',
+    workspace: f.workspace,
+    config,
+    attachments: fakeAttachments,
+  })
+
+  assert.equal(run.status, 'completed')
+  assert.ok(capturedBody, 'Model call must have been made')
+
+  // Check last user message content
+  const lastUserMsg = capturedBody.messages[capturedBody.messages.length - 1]
+  assert.ok(Array.isArray(lastUserMsg.content), 'Multimodal request must send content array')
+  const textItem = lastUserMsg.content.find(c => c.type === 'text')
+  assert.ok(textItem.text.includes('mockup.png'))
+  assert.ok(textItem.text.includes('config.json'))
+  assert.ok(textItem.text.includes('"version": "1.0.0"'))
+
+  const imageItem = lastUserMsg.content.find(c => c.type === 'image_url')
+  assert.ok(imageItem, 'Multimodal request must include image_url object')
+  assert.equal(imageItem.image_url.url, fakeAttachments[0].dataUrl)
+
+  // Verify attachments are persisted in run events
+  const savedRun = await f.store.getRun(run.id)
+  const userMsgEvent = savedRun.events.find(e => e.type === 'run:message' && e.role === 'user')
+  assert.ok(userMsgEvent.attachments && userMsgEvent.attachments.length === 2, 'Attachments must be stored in run message event')
+})
+

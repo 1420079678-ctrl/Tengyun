@@ -3,6 +3,9 @@
  * Both shell out through the shared bounded command runner, so output limits, timeouts,
  * process-tree kill and streamed output behave exactly like run_command.
  */
+import { promises as fs } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { ToolError, object, executeCommand } from '../primitives.mjs'
 
 export const tags = ['vcs', 'code']
@@ -21,7 +24,7 @@ export const definitions = [
     description: 'Stage all changes and create a commit after user approval.',
     requiresApproval: true,
     parameters: object({
-      message: string_('Commit message'),
+      message: string_('Commit message (1 to 10000 characters)'),
       timeoutMs: { type: 'integer', minimum: 100, maximum: 300000 },
     }, ['message']),
   },
@@ -35,7 +38,7 @@ async function git(args, command, context) {
 }
 
 async function diff(args, context) {
-  const result = await git(args, `git diff ${args.staged ? '--cached ' : ''}--no-color`, context)
+  const result = await git(args, `git diff ${args.staged ? '--cached ' : ''}--no-color --no-ext-diff --no-textconv`, context)
   if (result.exitCode !== 0 && /not a git repository/i.test(result.stderr)) {
     throw new ToolError('NOT_A_REPO', 'This workspace is not a Git repository')
   }
@@ -44,16 +47,25 @@ async function diff(args, context) {
 }
 
 async function commit(args, context) {
-  if (typeof args.message !== 'string' || !args.message.trim() || args.message.length > 400) {
-    throw new ToolError('INVALID_ARGUMENT', 'message must contain 1–400 characters')
+  const raw = typeof args.message === 'string' ? args.message.trim() : ''
+  if (!raw) {
+    throw new ToolError('INVALID_ARGUMENT', 'Commit message cannot be empty')
   }
-  const message = args.message.replace(/"/g, "'")
+  // Support comprehensive commit messages (up to 10,000 characters)
+  const message = raw.slice(0, 10000)
   const add = await executeCommand({ command: 'git add -A', timeoutMs: args.timeoutMs ?? 120000 }, context)
   if (add.exitCode !== 0) {
     throw new ToolError('GIT_FAILED', `git add failed: ${(add.stderr || add.stdout).trim().slice(0, 400)}`)
   }
-  const result = await executeCommand({ command: `git commit -m "${message}"`, timeoutMs: args.timeoutMs ?? 120000 }, context)
-  return { ...result, ok: result.exitCode === 0 }
+  // Write message to a temporary file to avoid shell escaping and CRLF corruption on Windows
+  const tmpFile = path.join(os.tmpdir(), `tengyun-commit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.txt`)
+  try {
+    await fs.writeFile(tmpFile, message, 'utf8')
+    const result = await executeCommand({ command: `git commit -F "${tmpFile}"`, timeoutMs: args.timeoutMs ?? 120000 }, context)
+    return { ...result, ok: result.exitCode === 0 }
+  } finally {
+    try { await fs.unlink(tmpFile) } catch {}
+  }
 }
 
 const handlers = { git_diff: diff, git_commit: commit }

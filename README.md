@@ -2,6 +2,10 @@
 
 独立的 Windows 编程 Agent，版本 0.2.0。桌面、任务内核、工具和存储为独立实现，不加载 DeepSeek Harness 或 Cordis 的模块，不使用其更新服务。
 
+## 技能与分工
+
+已加入本地 Skill 管理、按需加载、技能草稿、推理强度、独立进度输出与并行只读子智能体。使用方法和格式边界见 [技能与子智能体说明](SKILLS-AND-AGENTS.md)。
+
 ## 使用
 
 双击 `Tengyun.exe`。在模型设置中填写兼容 Chat Completions 工具调用协议的 API 地址、模型和 API Key，选择工作目录，输入任务。

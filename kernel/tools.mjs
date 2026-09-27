@@ -1,6 +1,7 @@
 import { promises as fs, constants } from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { createSkillRegistry, readSnapshotSkill } from './skills.mjs'
 import { createStore, redactSecrets } from './store.mjs'
 import { loadCapabilities } from './capabilities/index.mjs'
 import {
@@ -13,6 +14,9 @@ export { unifiedDiff }
 
 /** Tools that carry their own path and approval rules. Capabilities live beside these. */
 export const definitions = [
+  { name: 'skill_list', description: 'List enabled skills available in this run. Read a relevant SKILL.md with skill_read before using it.', parameters: object({}, []) },
+  { name: 'skill_read', description: 'Read an enabled skill or a referenced text resource from the run snapshot. Loading never executes scripts.', parameters: object({ id: string('Skill ID'), path: string('Resource path, default SKILL.md') }, ['id']) },
+  { name: 'skill_draft', description: 'Save a new reusable skill draft when the user requests it. Requires approval, does not enable it or overwrite an existing skill. Include name and description YAML frontmatter, instructions, verification and limitations; no credentials.', requiresApproval: true, parameters: object({ content: string('Complete SKILL.md text') }, ['content']) },
   { name: 'file_read', description: 'Read a text file inside the selected workspace. Symlinks and paths outside the workspace are rejected. Reports start/end line and total line count so you can cite exact lines.', parameters: object({ path: string('Path relative to workspace'), startLine: { type: 'integer', minimum: 1 }, maxLines: { type: 'integer', minimum: 1, maximum: 2000 } }, ['path']) },
   { name: 'file_write', description: 'Create or replace a UTF-8 file inside the workspace after user approval. Replacing a file saves a backup and returns a unified diff for review.', requiresApproval: true, parameters: object({ path: string('Path relative to workspace'), content: string('Complete new UTF-8 file content') }, ['path', 'content']) },
   { name: 'list_files', description: 'List files inside the workspace without following symlinks. Dependency and Git directories are skipped.', parameters: object({ path: string('Relative directory; use . for workspace'), maxDepth: { type: 'integer', minimum: 0, maximum: 8 }, limit: { type: 'integer', minimum: 1, maximum: 2000 } }, ['path']) },
@@ -28,6 +32,7 @@ export const definitions = [
  * engine offers to the model, so a new capability needs no change in tools.mjs.
  */
 export function createTools({ dataDir, secrets = [] } = {}) {
+  const skills = createSkillRegistry(dataDir)
   const store = createStore(dataDir)
   store.setSecrets(secrets)
   let capabilities = null
@@ -38,6 +43,8 @@ export function createTools({ dataDir, secrets = [] } = {}) {
   const builtins = new Set(definitions.map(item => item.name))
   return {
     definitions,
+    skills,
+    skillSnapshot: () => skills.snapshot(),
     async allDefinitions() {
       const loaded = await load()
       return [...definitions, ...loaded.map(item => item.definition)]
@@ -60,7 +67,10 @@ export function createTools({ dataDir, secrets = [] } = {}) {
       if (capability) return redactSecrets(await capability.run(name, args, { ...context, dataDir }), secrets)
 
       let result
-      if (name === 'run_command') result = await executeCommand(args, context)
+      if (name === 'skill_list') result = { skills: (context.skillSnapshot || []).map(({ id, description, revision }) => ({ id, description, revision })) }
+      else if (name === 'skill_read') result = readSnapshotSkill(context.skillSnapshot || [], args)
+      else if (name === 'skill_draft') result = await skills.save({ content: redactSecrets(args.content, secrets), source: 'agent-draft' })
+      else if (name === 'run_command') result = await executeCommand(args, context)
       else if (name === 'memory_save') {
         if (typeof args.text !== 'string' || !args.text.trim() || args.text.length > 10000) throw new ToolError('INVALID_ARGUMENT', 'Memory text must contain 1–10000 characters')
         const tags = args.tags ?? []

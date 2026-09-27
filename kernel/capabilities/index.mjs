@@ -11,9 +11,10 @@
  */
 import * as code from './code.mjs'
 import * as git from './git.mjs'
+import * as office from './office.mjs'
 import * as web from './web.mjs'
 
-const modules = [code, git, web]
+const modules = [code, git, office, web]
 
 let cached = null
 
