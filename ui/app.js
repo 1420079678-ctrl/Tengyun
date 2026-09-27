@@ -346,6 +346,10 @@
     }
     return { add, del };
   }
+  /**
+   * Unified diff in the shape the harness uses: old number, new number, sign column, text —
+   * a 4-column grid at a fixed 22px line so added and removed lines stay aligned with context.
+   */
   function renderDiff(text) {
     const box = el('div', 'diff');
     let oldLine = 0, newLine = 0;
@@ -359,11 +363,14 @@
       }
       if (line.startsWith('--- ') || line.startsWith('+++ ') || line.startsWith('diff ') || line.startsWith('index ')) continue;
       const kind = line[0] === '+' ? 'add' : line[0] === '-' ? 'del' : ' ';
-      if (kind === 'add') { newLine += 1; } else if (kind === 'del') { oldLine += 1; } else { oldLine += 1; newLine += 1; }
+      if (kind === 'add') newLine += 1;
+      else if (kind === 'del') oldLine += 1;
+      else { oldLine += 1; newLine += 1; }
       const row = el('div', 'diff-line' + (kind === ' ' ? '' : ' ' + kind));
-      row.append(el('span', 'ln', kind === 'add' ? String(newLine) : String(oldLine)));
-      row.append(el('span', 'ln', kind === 'del' ? String(oldLine) : String(newLine)));
-      row.append(el('span', 'code', line.slice(1) || ' '));
+      row.append(el('span', 'ln', kind === 'add' ? '' : String(oldLine)));
+      row.append(el('span', 'ln', kind === 'del' ? '' : String(newLine)));
+      row.append(el('span', 'sign', kind === ' ' ? '' : kind === 'add' ? '+' : '-'));
+      row.append(el('span', 'code', line.slice(1) || ''));
       box.append(row);
     }
     return box;
@@ -595,6 +602,8 @@
     const results = eventsFor().filter(item => item.type === 'tool:result' && typeof resultOf(item)?.diff === 'string' && resultOf(item).diff.trim());
     $('change-count').textContent = String(results.length);
     $('changes-empty').hidden = results.length > 0;
+    $('changes-card').hidden = results.length === 0;
+
     // Undo is offered only for a finished run that actually changed something on disk.
     const selected = runById();
     const revertable = results.filter(item => resultOf(item).path && (resultOf(item).replaced === false || resultOf(item).backupPath));
@@ -606,24 +615,40 @@
     } else {
       state.revertTarget = null;
     }
+
+    // Summary card: one filled header with aggregate counts, then code-font rows (DSH shape).
+    let added = 0, deleted = 0;
     const list = $('change-list');
     list.replaceChildren();
-    for (const item of results) {
+    const diffs = $('change-diffs');
+    diffs.replaceChildren();
+
+    for (const [index, item] of results.entries()) {
       const result = resultOf(item);
+      const path = result.path || basename(item.args?.path) || 'file';
       const stats = diffStats(result.diff);
-      const card = el('div', 'change');
-      const head = el('button', 'change-head');
-      head.type = 'button';
-      head.append(svgIcon('diff'), el('span', 'change-path', result.path || basename(item.args?.path) || 'file'));
-      head.append(el('span', 'change-stat', ''));
-      head.lastChild.append(el('span', 'add', '+' + stats.add), document.createTextNode(' '), el('span', 'del', '−' + stats.del));
-      const body = el('div', 'change-body');
-      body.append(renderDiff(result.diff));
-      body.hidden = true;
-      head.addEventListener('click', () => { body.hidden = !body.hidden; });
-      card.append(head, body);
-      list.append(card);
+      added += stats.add; deleted += stats.del;
+
+      const row = el('li');
+      const button = el('button', 'changes-row');
+      button.type = 'button';
+      button.append(el('span', 'path', path));
+      const counts = el('span', 'counts');
+      counts.append(el('span', 'added', '+' + stats.add), el('span', 'deleted', '−' + stats.del));
+      button.append(counts);
+
+      // Each file's diff sits below the card; clicking its row toggles it, the first one opens.
+      const block = el('div', 'change-diff');
+      block.append(el('div', 'change-diff-path', path), renderDiff(result.diff));
+      block.hidden = index !== 0;
+      button.addEventListener('click', () => { block.hidden = !block.hidden; });
+      row.append(button);
+      list.append(row);
+      diffs.append(block);
     }
+    $('changes-added').textContent = '+' + added;
+    $('changes-deleted').textContent = '−' + deleted;
+    $('changes-title').textContent = results.length === 1 ? '1 个文件改动' : `${results.length} 个文件改动`;
   }
 
   /**
@@ -2045,6 +2070,10 @@
       });
     }
     for (const tab of ['changes', 'plan', 'trace']) $('tab-' + tab).addEventListener('click', () => setTab(tab));
+    // The pane guides are launchers: each capsule opens another pane, as the harness guide does.
+    for (const entry of document.querySelectorAll('.entry[data-pane]')) {
+      entry.addEventListener('click', () => setTab(entry.dataset.pane));
+    }
     document.addEventListener('keydown', event => {
       const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
       if (event.key === 'Escape' && state.activeRuns.size > 0) { event.preventDefault(); $('cancel-run').click(); return; }

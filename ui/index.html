@@ -203,8 +203,34 @@
 
           <section id="panel-changes" class="review-panel" role="tabpanel" aria-labelledby="tab-changes">
             <div class="panel-scroll" id="change-scroll">
-              <p class="panel-hint" id="changes-empty">任务修改的文件会在这里以 diff 展示。</p>
-              <div id="change-list"></div>
+              <div class="guide" id="changes-empty">
+                <span class="hero"><svg><use href="#i-diff"/></svg></span>
+                <button class="entry" type="button" data-pane="trace">
+                  <span class="entry-icon"><svg><use href="#i-terminal"/></svg></span>
+                  <span class="entry-text">
+                    <span class="entry-title">还没有文件改动</span>
+                    <span class="entry-desc">任务修改文件后会在这里以 diff 展示</span>
+                  </span>
+                </button>
+                <button class="entry" type="button" data-pane="plan">
+                  <span class="entry-icon"><svg><use href="#i-list"/></svg></span>
+                  <span class="entry-text">
+                    <span class="entry-title">查看执行步骤</span>
+                    <span class="entry-desc">任务拆解出的计划与执行记录</span>
+                  </span>
+                </button>
+              </div>
+              <div class="changes-card" id="changes-card" hidden>
+                <div class="changes-head">
+                  <span class="changes-tile"><svg><use href="#i-diff"/></svg></span>
+                  <span class="changes-titles">
+                    <span class="changes-title" id="changes-title">改动文件</span>
+                    <span class="changes-stat"><span class="added" id="changes-added">+0</span><span class="deleted" id="changes-deleted">−0</span></span>
+                  </span>
+                </div>
+                <ul class="changes-list" id="change-list"></ul>
+              </div>
+              <div id="change-diffs"></div>
             </div>
             <div class="panel-actions" id="change-actions" hidden>
               <span class="panel-actions-note" id="revert-note">每次写入都留有备份</span>
@@ -214,7 +240,23 @@
 
           <section id="panel-plan" class="review-panel" role="tabpanel" aria-labelledby="tab-plan" hidden>
             <div class="panel-scroll">
-              <p class="panel-hint" id="plan-empty">执行步骤会显示在这里。</p>
+              <div class="guide" id="plan-empty">
+                <span class="hero"><svg><use href="#i-list"/></svg></span>
+                <button class="entry" type="button" data-pane="changes">
+                  <span class="entry-icon"><svg><use href="#i-diff"/></svg></span>
+                  <span class="entry-text">
+                    <span class="entry-title">还没有计划</span>
+                    <span class="entry-desc">任务拆解出的步骤会显示在这里</span>
+                  </span>
+                </button>
+                <button class="entry" type="button" data-pane="trace">
+                  <span class="entry-icon"><svg><use href="#i-terminal"/></svg></span>
+                  <span class="entry-text">
+                    <span class="entry-title">查看终端记录</span>
+                    <span class="entry-desc">按顺序回看每一次工具调用</span>
+                  </span>
+                </button>
+              </div>
               <ol class="plan-list" id="plan-list"></ol>
               <div class="evidence-block">
                 <div class="section-label"><span>执行记录</span><span class="tab-count" id="evidence-count">0</span></div>

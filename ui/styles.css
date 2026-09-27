@@ -954,11 +954,60 @@ body.review-hidden .review { display: none; }
 /* Inspector empty state is one muted line. A centered illustration card belongs on a landing page. */
 .panel-hint { margin: 2px 2px 10px; font-size: 12px; line-height: 1.55; color: var(--text-3); }
 
+/* ── pane guide (the empty state, harness geometry) ─────
+   A centered column of 24px-radius capsules under a 56px watermark glyph; each capsule is a
+   pane the user can open. Same 380/56/14/24 numbers as the harness guide so the two read alike. */
+.guide { display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center; box-sizing: border-box; min-height: 100%; padding: 0 24px; }
+.guide::after { content: ''; flex: 0 1 10%; }
+.guide[hidden] { display: none; }
+.guide .hero { display: flex; margin-bottom: 16px; color: var(--line-strong); }
+.guide .hero svg { width: 56px; height: 56px; stroke-width: 1.2; }
+.entry { display: flex; gap: 14px; align-items: center; box-sizing: border-box; width: 380px; max-width: 100%; min-height: 56px; padding: 14px 20px; color: var(--text); font: inherit; text-align: left; background: var(--bg-panel); border: .5px solid var(--line); border-radius: 24px; cursor: pointer; transition: background .12s; }
+.entry:hover { background: var(--bg-hover); }
+.entry-icon { display: flex; flex: none; align-items: center; justify-content: center; width: 26px; height: 26px; color: var(--text-2); }
+.entry-icon svg { width: 22px; height: 22px; }
+.entry-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.entry-title { overflow: hidden; font-size: 15px; line-height: 1.4; color: var(--text); white-space: nowrap; text-overflow: ellipsis; }
+.entry-desc { overflow: hidden; font-size: 13px; line-height: 1.4; color: var(--text-3); white-space: nowrap; text-overflow: ellipsis; }
+
 .panel-actions {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 7px 10px; border-top: 1px solid var(--line); background: var(--bg-panel);
 }
 .panel-actions-note { font-size: 11px; color: var(--text-3); }
+
+/* ── changes: DSH-shaped card + review diff ──────────── */
+.changes-card { margin-bottom: 10px; border: .5px solid var(--line); border-radius: 16px; overflow: hidden; }
+.changes-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-inset); }
+.changes-tile { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--accent); color: #fff; }
+.changes-tile svg { width: 18px; height: 18px; }
+.changes-titles { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.changes-title { font-size: 14px; font-weight: 500; line-height: 22px; color: var(--text); }
+.changes-stat { display: inline-flex; gap: 8px; font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--text-3); }
+.changes-stat .added, .changes-row .added { color: var(--green); }
+.changes-stat .deleted, .changes-row .deleted { color: var(--red); }
+.changes-list { margin: 0; padding: 4px 0; list-style: none; border-top: .5px solid var(--line); }
+.changes-list > li + li { border-top: .5px solid var(--line-soft); }
+.changes-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-width: 0; padding: 6px 16px; border: 0; background: transparent; color: var(--text-2); font-family: var(--font-mono); font-size: 12px; line-height: 18px; text-align: left; cursor: pointer; }
+.changes-row:hover { background: var(--bg-hover); }
+.changes-row .path { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.changes-row .counts { display: inline-flex; flex: none; gap: 6px; color: var(--text-3); }
+
+.change-diff { margin: 0 0 12px; border: .5px solid var(--line); border-radius: 12px; overflow: hidden; }
+.change-diff[hidden] { display: none; }
+.change-diff-path { padding: 6px 16px; border-bottom: .5px solid var(--line); background: var(--bg-inset); font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
+
+/* Diff grid: old number | new number | sign | text, fixed 22px lines. */
+.diff { font-family: var(--font-mono); font-size: 12.5px; }
+.diff-line { display: grid; grid-template-columns: 3.5em 3.5em 1.2em minmax(0, 1fr); min-height: 22px; line-height: 22px; white-space: pre; }
+.diff-line .ln { padding-right: 8px; text-align: right; color: var(--text-3); opacity: .75; user-select: none; }
+.diff-line .sign { text-align: center; user-select: none; }
+.diff-line .code { padding-right: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.diff-line.add { background: color-mix(in srgb, var(--green) 12%, transparent); }
+.diff-line.add .sign, .diff-line.add .code { color: var(--green); }
+.diff-line.del { background: color-mix(in srgb, var(--red) 12%, transparent); }
+.diff-line.del .sign, .diff-line.del .code { color: var(--red); }
+.diff-hunk { display: block; padding: 4px 16px; color: var(--text-3); white-space: pre; }
 
 .change { margin-bottom: 6px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .change-head { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border: 0; background: var(--bg-raised); color: var(--text-2); font: inherit; font-family: var(--font-mono); font-size: 12px; text-align: left; cursor: pointer; }
