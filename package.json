@@ -1,0 +1,22 @@
+{
+  "name": "tengyun-desktop",
+  "version": "0.2.0",
+  "description": "Tengyun independent coding agent",
+  "private": true,
+  "type": "module",
+  "main": "main.mjs",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron/asar": "3.4.1",
+    "electron": "44.0.0",
+    "playwright": "1.61.1",
+    "resedit": "1.7.2",
+    "sharp": "0.35.3"
+  },
+  "scripts": {
+    "test": "node --test kernel/*.test.mjs",
+    "build": "node build.mjs",
+    "verify": "node scripts/verify-package.mjs",
+    "e2e": "node D:/Tengyun/tools/e2e-suite.mjs"
+  }
+}

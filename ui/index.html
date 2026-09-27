@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Tengyun</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <svg class="svg-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9H3Z"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m10 8 4 4-4 4"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m5 7 4 4-4 4m6 0h7"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8Zm0 0v5h5"/></symbol>
+    <symbol id="i-diff" viewBox="0 0 24 24"><path d="M7 4v11m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0-8h4m9 3v11m0 0a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0-8h-4"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2 20h20L12 4Zm0 6v5m0 3h.01"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/></symbol>
+    <symbol id="i-rewrite" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8m0-4v4h-4M20 12a8 8 0 0 1-13.7 5.7L4 16m0 4v-4h4"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/></symbol>
+  </svg>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="任务列表">
+      <div class="sidebar-head">
+        <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36"><path d="M5 8h26v6H21v15h-6V14H5Z"/><path d="m5 21 6-4v8l-6 4Zm20-4 6 4v8l-6-4Z"/></svg></span><span class="brand-name">Tengyun</span></div>
+        <button class="icon-button subtle" id="collapse-sidebar" title="收起侧栏" aria-label="收起侧栏"><svg><use href="#i-sidebar"/></svg></button>
+      </div>
+
+      <button class="new-task" id="new-task"><svg><use href="#i-plus"/></svg><span>新建任务</span><kbd>N</kbd></button>
+
+      <div class="thread-scroll">
+        <div class="thread-label"><span>任务</span><span id="run-count">0</span></div>
+        <nav class="task-history" id="task-history" aria-label="历史任务"></nav>
+      </div>
+
+      <div class="sidebar-foot">
+        <button class="workspace-button" id="choose-workspace" title="切换工作目录">
+          <svg class="mono-icon"><use href="#i-folder"/></svg>
+          <span class="workspace-text"><span class="workspace-name" id="workspace-label">选择工作目录</span></span>
+          <svg class="chevron"><use href="#i-chevron-down"/></svg>
+        </button>
+        <button class="account-button" id="open-settings">
+          <span class="account-avatar">T</span>
+          <span class="account-text"><span class="account-model" id="sidebar-model">未配置模型</span><span class="account-meta" id="version">v0.1.0</span></span>
+          <svg class="chevron"><use href="#i-settings"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button subtle" id="expand-sidebar" title="展开侧栏" aria-label="展开侧栏" hidden><svg><use href="#i-sidebar"/></svg></button>
+          <div class="crumbs"><span class="crumb-path" id="topbar-workspace">—</span><span class="crumb-sep">/</span><strong id="task-title">新建任务</strong></div>
+        </div>
+        <div class="topbar-right">
+          <button class="pill" id="composer-settings" title="模型与运行设置"><span class="pill-dot"></span><span id="composer-model">选择模型</span><svg class="chevron"><use href="#i-chevron-down"/></svg></button>
+          <span class="pill ghost" id="perm-pill" title="运行权限模式"><svg><use href="#i-shield"/></svg><span id="perm-label">每次确认</span></span>
+          <button class="icon-button subtle" id="toggle-theme" title="切换主题" aria-label="切换主题"><svg><use href="#i-rewrite"/></svg></button>
+          <button class="icon-button subtle" id="toggle-inspector" aria-expanded="true" title="显示审阅面板" aria-label="显示审阅面板"><svg><use href="#i-panel"/></svg></button>
+        </div>
+      </header>
+
+      <div class="workarea">
+        <section class="chat" aria-label="任务对话">
+          <div class="connection-banner" id="connection-banner" hidden></div>
+          <div class="chat-scroll" id="conversation-scroll">
+            <section class="empty-state" id="welcome">
+              <h1>描述任务，Tengyun 直接动手</h1>
+              <p>它会自己列计划、读写文件、跑命令，每一步都留下可核对的执行证据。</p>
+              <div class="starter-grid">
+                <button class="starter" data-prompt="先阅读当前项目的目录和关键文件，说明项目结构、启动方式和主要模块。只分析，不要修改文件。"><span class="starter-title">读懂这个项目</span><span class="starter-desc">梳理结构与入口</span></button>
+                <button class="starter" data-prompt="帮我定位并修复当前项目的问题。先检查相关代码、文档和现有测试，给出执行计划；修改后运行相关检查并说明结果。问题描述："><span class="starter-title">修一个问题</span><span class="starter-desc">定位、修改、验证</span></button>
+                <button class="starter" data-prompt="帮我完成一个本地文件处理任务。先检查工作目录并提出可执行计划，写入文件或执行命令前展示具体内容让我确认。任务："><span class="starter-title">处理本地任务</span><span class="starter-desc">文件、命令、自动化</span></button>
+              </div>
+            </section>
+            <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions"></div>
+          </div>
+
+          <div class="composer-wrap">
+            <div class="run-bar" id="run-progress" hidden>
+              <span class="pulse-dot"></span>
+              <span id="run-progress-text">正在执行</span>
+              <span class="run-meta" id="run-steps"></span>
+              <button class="stop-button" id="cancel-run">停止</button>
+            </div>
+            <form class="composer" id="task-form">
+              <label class="sr-only" for="task-input">描述任务</label>
+              <textarea id="task-input" rows="2" placeholder="描述一个任务，或粘贴报错、日志、需求…" maxlength="50000"></textarea>
+              <div class="composer-bar">
+                <div class="composer-left">
+                  <button class="chip" id="composer-model-chip" type="button" title="运行设置"><span class="chip-dot"></span><span id="composer-model-chip-text">模型</span></button>
+                  <span class="composer-hint" id="composer-hint">Enter 发送 · Shift+Enter 换行</span>
+                </div>
+                <div class="composer-right">
+                  <button class="send-button" id="send-task" type="submit" aria-label="发送"><svg><use href="#i-send"/></svg></button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <aside class="review" id="review-panel" aria-label="审阅面板">
+          <div class="review-tabs" role="tablist" aria-label="审阅面板">
+            <button id="tab-changes" class="review-tab active" role="tab" aria-selected="true" aria-controls="panel-changes">变更<span class="tab-count" id="change-count">0</span></button>
+            <button id="tab-plan" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-plan">计划<span class="tab-count" id="plan-count">0</span></button>
+            <button id="tab-trace" class="review-tab" role="tab" aria-selected="false" aria-controls="panel-trace">终端<span class="tab-count" id="trace-count">0</span></button>
+          </div>
+
+          <section id="panel-changes" class="review-panel" role="tabpanel" aria-labelledby="tab-changes">
+            <div class="panel-scroll" id="change-scroll">
+              <div class="empty-note" id="changes-empty">文件改动会在这里以 diff 形式呈现。</div>
+              <div id="change-list"></div>
+            </div>
+          </section>
+
+          <section id="panel-plan" class="review-panel" role="tabpanel" aria-labelledby="tab-plan" hidden>
+            <div class="panel-scroll">
+              <ol class="plan-list" id="plan-list"></ol>
+              <div class="empty-note" id="plan-empty">任务开始后，执行计划会出现在这里。</div>
+              <div class="evidence-block">
+                <div class="section-label">执行证据<span id="evidence-count">0</span></div>
+                <div id="evidence-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="panel-trace" class="review-panel" role="tabpanel" aria-labelledby="tab-trace" hidden>
+            <div class="panel-scroll"><div class="trace-list" id="trace-list"></div></div>
+          </section>
+
+          <div class="review-foot">
+            <span class="state-pill" id="run-state">待命</span>
+            <span class="review-foot-note">结果以工具实际返回为准</span>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="statusbar">
+        <span class="status-left"><span class="status-dot"></span><span id="footer-status">就绪</span></span>
+        <span class="status-right"><span id="footer-workspace" class="mono">—</span><span class="status-sep">·</span><span id="footer-usage" class="mono">—</span></span>
+      </footer>
+    </main>
+  </div>
+
+  <dialog id="settings-dialog" class="modal" aria-labelledby="settings-title">
+    <form id="settings-form">
+      <div class="modal-header">
+        <div><div class="eyebrow">MODEL</div><h2 id="settings-title">模型与运行设置</h2></div>
+        <button class="icon-button" id="close-settings" type="button" aria-label="关闭"><svg><use href="#i-x"/></svg></button>
+      </div>
+      <div class="field"><label for="setting-base-url">API 地址</label><input id="setting-base-url" type="url" placeholder="https://api.deepseek.com/v1" required autocomplete="off"></div>
+      <div class="field"><label for="setting-api-key">API 密钥<span id="key-hint" class="field-hint">仅用于连接模型</span></label><input id="setting-api-key" type="password" placeholder="输入 API Key" autocomplete="new-password" spellcheck="false"></div>
+      <div class="field"><label for="setting-model">模型名称</label><input id="setting-model" type="text" placeholder="deepseek-chat" required autocomplete="off" spellcheck="false"></div>
+      <div class="field-row">
+        <div class="field"><label for="setting-max-steps">单次任务最大轮数</label><input id="setting-max-steps" type="number" min="1" max="400" value="60" required><p class="field-help">到达上限后停止，防止无限循环。</p></div>
+        <div class="field"><label for="setting-approval">写入与命令</label><select id="setting-approval">
+          <option value="always">每次确认</option>
+          <option value="writes">只确认危险操作</option>
+          <option value="never">全部自动执行</option>
+        </select><p class="field-help" id="approval-help">每次涉及写入或命令时询问你。</p></div>
+      </div>
+      <p id="settings-error" class="form-error" role="alert" hidden></p>
+      <div class="modal-footer"><button class="button ghost" type="button" id="close-settings-2">取消</button><button class="button primary" id="save-settings" type="submit">保存</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="approval-dialog" class="modal approval" aria-labelledby="approval-title">
+    <div class="modal-header">
+      <div><div class="eyebrow">APPROVAL</div><h2 id="approval-title">确认这一次操作</h2></div>
+      <span class="approval-badge"><svg><use href="#i-shield"/></svg></span>
+    </div>
+    <p class="modal-description" id="approval-description">Tengyun 请求执行以下操作，请检查具体内容。</p>
+    <div class="approval-tool" id="approval-tool"></div>
+    <pre class="approval-details" id="approval-details"></pre>
+    <p class="form-error" id="approval-error" role="alert" hidden></p>
+    <div class="modal-footer"><button class="button" id="deny-approval">拒绝</button><button class="button primary" id="allow-approval">允许一次</button></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

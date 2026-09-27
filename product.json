@@ -1,0 +1,8 @@
+{
+  "name": "Tengyun",
+  "packageName": "tengyun-desktop",
+  "appId": "com.tengyun.agent",
+  "version": "0.2.0",
+  "updates": "manual",
+  "modelService": "user-configured"
+}
