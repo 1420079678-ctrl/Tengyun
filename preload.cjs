@@ -3,6 +3,8 @@ const invoke = (name, value) => ipcRenderer.invoke('tengyun:' + name, value)
 contextBridge.exposeInMainWorld('tengyun', {
   info: () => invoke('info'),
   setTheme: value => invoke('setTheme', value),
+  chooseWallpaper: () => invoke('chooseWallpaper'),
+  clearWallpaper: () => invoke('clearWallpaper'),
   chooseWorkspace: () => invoke('chooseWorkspace'),
   saveSettings: value => invoke('saveSettings', value),
   listRuns: () => invoke('listRuns'),

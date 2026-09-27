@@ -10,7 +10,7 @@
   const $ = id => document.getElementById(id);
   const state = {
     info: null, workspace: '', runs: [], events: new Map(), selected: null, active: null,
-    submitting: false, approvals: [], toastTimer: null, streaming: new Map(), steps: 0,
+    submitting: false, approvals: [], toastTimer: null, streaming: new Map(), steps: 0, wallpaper: null,
   };
 
   const RUN_LABELS = {
@@ -27,7 +27,7 @@
     memory_save: '保存记忆', memory_search: '检索记忆', git_diff: '查看改动', git_commit: '提交改动',
     apply_patch: '应用补丁', read_many: '批量读取', web_fetch: '抓取网页',
   };
-  const APPROVAL_MODES = { always: '每次确认', writes: '只确认危险操作', never: '全部自动' };
+  const APPROVAL_MODES = { always: '每次确认', session: '信任同类操作', never: '全部自动' };
 
   // ── helpers ──────────────────────────────────────────────────────────────────
   function el(tag, className, text) {
@@ -477,6 +477,73 @@
   }
   function renderAll() { renderHistory(); renderTranscript(); renderReview(); renderChrome(); renderUsage(); renderBusy(); }
 
+  // ── appearance ───────────────────────────────────────────────────────────────
+  const APPEARANCE_LABELS = { light: '浅色', dark: '深色', wallpaper: '壁纸' };
+
+  /**
+   * Apply an appearance. The wallpaper image is referenced by its short custom-scheme URL as a
+   * CSS custom property, never as an inline style attribute (the page CSP is `style-src 'self'`)
+   * and never as a data URL (a multi-megabyte custom-property value is dropped by the engine).
+   */
+  function applyAppearance(mode, wallpaper = state.wallpaper) {
+    const root = document.documentElement;
+    const resolved = ['light', 'dark', 'wallpaper'].includes(mode) ? mode : 'light';
+    root.dataset.theme = resolved;
+    const usable = resolved === 'wallpaper' && wallpaper?.url;
+    document.body.classList.toggle('has-wallpaper', Boolean(usable));
+    root.style.setProperty('--wallpaper-image', usable ? `url("${wallpaper.url}")` : 'none');
+    localStorage.setItem('tengyun-theme', resolved);
+    return resolved;
+  }
+  function cycleAppearance() {
+    const order = ['light', 'dark', 'wallpaper'];
+    const current = document.documentElement.dataset.theme || 'light';
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    if (next === 'wallpaper' && !state.wallpaper?.url) {
+      toast('还没有选择壁纸图片，先在设置里选一张。');
+      openSettings();
+      return;
+    }
+    applyAppearance(next);
+    $('toggle-theme').title = '当前：' + APPEARANCE_LABELS[next] + '（点击切换）';
+    api?.setTheme?.(next).catch(() => {});
+  }
+  function renderAppearanceControls() {
+    const current = document.documentElement.dataset.theme || 'light';
+    for (const button of document.querySelectorAll('.segment')) {
+      const active = button.dataset.appearance === current;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-checked', String(active));
+    }
+    const name = state.wallpaper?.name;
+    $('wallpaper-hint').textContent = name ? `${name} · ${Math.round((state.wallpaper.bytes || 0) / 1024)} KB` : '未选择';
+    $('remove-wallpaper').disabled = !name;
+    $('appearance-hint').textContent = current === 'wallpaper' ? '图片背景' : '默认浅色';
+  }
+  async function pickWallpaper() {
+    if (!api?.chooseWallpaper) return;
+    try {
+      const result = await api.chooseWallpaper();
+      if (!result) return;
+      state.wallpaper = result.wallpaper;
+      state.info = { ...state.info, settings: result.settings };
+      applyAppearance('wallpaper', state.wallpaper);
+      renderAppearanceControls();
+      toast('壁纸已应用。');
+    } catch (error) { fieldError('settings-error', error.message); }
+  }
+  async function removeWallpaper() {
+    if (!api?.clearWallpaper) return;
+    try {
+      const result = await api.clearWallpaper();
+      state.wallpaper = null;
+      state.info = { ...state.info, settings: result.settings };
+      applyAppearance(result.settings?.appearance || 'light', null);
+      renderAppearanceControls();
+      toast('壁纸已移除。');
+    } catch (error) { fieldError('settings-error', error.message); }
+  }
+
   // ── data flow ────────────────────────────────────────────────────────────────
   async function refreshRuns() {
     if (!api) return;
@@ -563,12 +630,13 @@
     $('setting-api-key').placeholder = settings.hasApiKey ? '已保存密钥，留空保留' : '输入 API Key（本地模型可留空）';
     $('key-hint').textContent = settings.hasApiKey ? '已保存' : '仅用于连接模型';
     fieldError('settings-error', '');
+    renderAppearanceControls();
     if (!$('settings-dialog').open) $('settings-dialog').showModal();
   }
   function updateApprovalHelp() {
     $('approval-help').textContent = {
       always: '每次写入文件或执行命令都询问你。',
-      writes: '只读操作直接执行，写入与命令仍需确认。',
+      session: '同类操作在本次任务里只问一次，其余自动放行。',
       never: '全部自动执行。仅在你完全信任当前任务时使用。',
     }[$('setting-approval').value] || '';
   }
@@ -580,6 +648,7 @@
       model: $('setting-model').value.trim(),
       maxSteps: Number($('setting-max-steps').value),
       approval: $('setting-approval').value,
+      appearance: document.documentElement.dataset.theme || 'light',
     };
     const apiKey = $('setting-api-key').value.trim();
     if (apiKey) payload.apiKey = apiKey;
@@ -724,11 +793,6 @@
       $('panel-' + tab).hidden = !active;
     }
   }
-  function setTheme(theme) {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('tengyun-theme', theme);
-    api?.setTheme?.(theme).catch(() => {});
-  }
   function toggleSidebar() {
     const hidden = document.body.classList.toggle('sidebar-hidden');
     $('expand-sidebar').hidden = !hidden;
@@ -736,7 +800,7 @@
   }
 
   function bind() {
-    const saved = localStorage.getItem('tengyun-theme') || 'dark';
+    const saved = localStorage.getItem('tengyun-theme') || 'light';
     document.documentElement.dataset.theme = saved;
     if (localStorage.getItem('tengyun-sidebar') === 'off') { document.body.classList.add('sidebar-hidden'); $('expand-sidebar').hidden = false; }
     if (localStorage.getItem('tengyun-review') === 'off') { document.body.classList.add('review-hidden'); $('toggle-inspector').setAttribute('aria-expanded', 'false'); }
@@ -757,9 +821,18 @@
       $('toggle-inspector').setAttribute('aria-expanded', String(!hidden));
       localStorage.setItem('tengyun-review', hidden ? 'off' : 'on');
     });
-    $('toggle-theme').addEventListener('click', () => {
-      setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-    });
+    $('toggle-theme').addEventListener('click', cycleAppearance);
+    for (const button of document.querySelectorAll('.segment')) {
+      button.addEventListener('click', () => {
+        const mode = button.dataset.appearance;
+        if (mode === 'wallpaper' && !state.wallpaper?.url) { openSettings(); toast('先选择一张壁纸图片。'); return; }
+        applyAppearance(mode);
+        renderAppearanceControls();
+        api?.setTheme?.(mode).catch(() => {});
+      });
+    }
+    $('pick-wallpaper').addEventListener('click', pickWallpaper);
+    $('remove-wallpaper').addEventListener('click', removeWallpaper);
     $('choose-workspace').addEventListener('click', chooseWorkspace);
     for (const id of ['open-settings', 'composer-settings', 'composer-model-chip']) $(id).addEventListener('click', openSettings);
     $('close-settings').addEventListener('click', () => $('settings-dialog').close());
@@ -811,7 +884,11 @@
     try {
       state.info = await api.info();
       state.workspace = state.info.workspace || '';
+      state.wallpaper = state.info.wallpaper || null;
+      // The stored appearance wins over whatever the last local session cached.
+      applyAppearance(state.info.settings?.appearance || 'light', state.wallpaper);
       renderChrome();
+      renderAppearanceControls();
       await refreshRuns();
       renderAll();
     } catch (error) {

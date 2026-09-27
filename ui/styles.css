@@ -72,7 +72,77 @@
   --hunk-bg: #f1f1f3;
   --hunk-text: #6e6e78;
   --shadow: 0 16px 48px rgba(15, 15, 20, .18);
+  --wall: 0;
 }
+
+/*
+ * Wallpaper mode: the same light surface tokens, but every panel turns translucent so the image
+ * reads through, and the image itself sits in a fixed layer behind the app grid.
+ */
+:root[data-theme="wallpaper"] {
+  color-scheme: light;
+  --bg: rgba(255, 255, 255, .58);
+  --bg-rail: rgba(255, 255, 255, .68);
+  --bg-panel: rgba(255, 255, 255, .52);
+  --bg-inset: rgba(246, 246, 248, .70);
+  --bg-raised: rgba(255, 255, 255, .74);
+  --bg-hover: rgba(255, 255, 255, .58);
+  --bg-active: rgba(230, 230, 234, .74);
+  --line: rgba(20, 20, 28, .13);
+  --line-soft: rgba(20, 20, 28, .08);
+  --line-strong: rgba(20, 20, 28, .24);
+  --text: #14141a;
+  --text-2: #41414d;
+  --text-3: #6b6b78;
+  --accent: #0d8a6a;
+  --accent-soft: rgba(13, 138, 106, .16);
+  --accent-text: #0a6f55;
+  --blue: #2f6feb;
+  --green: #1a7f37;
+  --red: #c02a36;
+  --amber: #8a5a00;
+  --add-bg: rgba(26, 127, 55, .18);
+  --add-gutter: rgba(26, 127, 55, .26);
+  --add-text: #0f5423;
+  --del-bg: rgba(192, 42, 54, .15);
+  --del-gutter: rgba(192, 42, 54, .23);
+  --del-text: #8f1a26;
+  --hunk-bg: rgba(240, 240, 244, .82);
+  --hunk-text: #5f5f6a;
+  --shadow: 0 18px 52px rgba(10, 10, 20, .22);
+  --wall: 1;
+}
+
+/* The wallpaper layer only shows in wallpaper mode (opacity is driven by --wall). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--wallpaper-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #e9ebef;
+  opacity: var(--wall, 0);
+  transition: opacity .25s ease;
+}
+body.has-wallpaper { background: transparent; }
+/* Frosted surfaces keep text readable over a busy photo. */
+body.has-wallpaper .sidebar,
+body.has-wallpaper .review,
+body.has-wallpaper .main,
+body.has-wallpaper .statusbar,
+body.has-wallpaper .topbar,
+body.has-wallpaper .composer,
+body.has-wallpaper .run-bar,
+body.has-wallpaper .starter,
+body.has-wallpaper .system-note,
+body.has-wallpaper .change-head,
+body.has-wallpaper .evidence-item {
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+body.has-wallpaper .modal { backdrop-filter: blur(8px); }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -365,6 +435,12 @@ body.review-hidden .review { display: none; }
 .field input:focus, .field select:focus { border-color: var(--text-3); }
 .field input.mono { font-family: var(--font-mono); font-size: 12.5px; }
 .field-help { margin: 0; font-size: 11px; color: var(--text-3); }
+
+.segmented { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg-inset); }
+.segment { padding: 5px 14px; border: 0; border-radius: 5px; background: transparent; color: var(--text-2); font: inherit; font-size: 12.5px; cursor: pointer; }
+.segment:hover { color: var(--text); }
+.segment.active { background: var(--bg-raised); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .10); font-weight: 500; }
+.wallpaper-row { display: flex; gap: 8px; }
 .form-error { margin: 0 18px 10px; padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--red) 40%, var(--line)); border-radius: var(--radius); background: color-mix(in srgb, var(--red) 8%, transparent); color: var(--red); font-size: 12.5px; }
 .modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 18px 16px; border-top: 1px solid var(--line-soft); }
 .button { padding: 7px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-panel); color: var(--text-2); font: inherit; font-size: 13px; cursor: pointer; }

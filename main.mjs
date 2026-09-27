@@ -1,6 +1,6 @@
 /** Tengyun desktop owns model credentials, task execution and all privileged IPC. */
-import { app, BrowserWindow, dialog, ipcMain, safeStorage, Menu, nativeTheme } from 'electron'
-import { mkdirSync, existsSync, realpathSync } from 'node:fs'
+import { app, BrowserWindow, dialog, ipcMain, safeStorage, Menu, nativeTheme, protocol, net } from 'electron'
+import { mkdirSync, existsSync, realpathSync, copyFileSync, rmSync, statSync } from 'node:fs'
 import { dirname, isAbsolute, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { randomUUID } from 'node:crypto'
@@ -29,14 +29,44 @@ let stopping = false
 let settings
 const approvals = new Map()
 const uiUrl = pathToFileURL(join(source, 'ui/index.html')).href
-const defaultSettings = { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat', maxSteps: 60, approval: 'always', streaming: true }
+// A dedicated scheme lets the renderer show the wallpaper without shipping megabytes of base64
+// through IPC (a CSS custom property that large is dropped silently by the style engine).
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'tengyun-wallpaper', privileges: { standard: true, secure: true, supportFetchAPI: true } },
+])
+const defaultSettings = { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat', maxSteps: 60, approval: 'always', streaming: true, appearance: 'light' }
 const APPROVAL_MODES = new Set(['always', 'session', 'never'])
 const MAX_STEP_LIMIT = 200
+
+/** Appearance: light, dark, or a user wallpaper behind translucent panels. */
+const APPEARANCES = new Set(['light', 'dark', 'wallpaper'])
+const WALLPAPER_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', bmp: 'image/bmp' }
+const MAX_WALLPAPER_BYTES = 12 * 1024 * 1024
 
 function publicSettings() {
   return { baseUrl: settings.baseUrl, model: settings.model, maxSteps: settings.maxSteps,
     approval: settings.approval ?? 'always', streaming: settings.streaming !== false,
-    appearance: settings.appearance ?? 'dark', hasApiKey: Boolean(settings.encryptedApiKey), workspace }
+    appearance: settings.appearance ?? 'light', wallpaperName: settings.wallpaper ?? null,
+    hasApiKey: Boolean(settings.encryptedApiKey), workspace }
+}
+
+/**
+ * Describe the chosen wallpaper for the renderer. The bytes are served over the
+ * `tengyun-wallpaper:` scheme instead of being embedded as a data URL.
+ */
+function wallpaperPayload() {
+  const name = settings.wallpaper
+  if (!name) return null
+  const file = join(home, 'wallpaper', name)
+  if (!existsSync(file)) return null
+  const mime = WALLPAPER_TYPES[name.split('.').pop()?.toLowerCase()]
+  if (!mime) return null
+  try {
+    const bytes = statSync(file).size
+    if (bytes > MAX_WALLPAPER_BYTES) return null
+    // Cache-buster keeps a replaced file from staying stale in the renderer.
+    return { name, mime, bytes, url: `tengyun-wallpaper://current/${encodeURIComponent(name)}?v=${bytes}` }
+  } catch { return null }
 }
 function secret() {
   if (!settings.encryptedApiKey) return ''
@@ -67,7 +97,9 @@ async function saveSettings(input) {
     throw new Error(`请填写模型名称；执行轮数应为 1–${MAX_STEP_LIMIT}`)
   }
   if (!APPROVAL_MODES.has(approval)) throw new Error('未知的确认模式')
-  const next = { ...settings, baseUrl, model, maxSteps, approval, streaming: input.streaming === undefined ? settings.streaming !== false : Boolean(input.streaming) }
+  const appearance = String(input.appearance ?? settings.appearance ?? 'light')
+  if (!APPEARANCES.has(appearance)) throw new Error('未知的界面风格')
+  const next = { ...settings, baseUrl, model, maxSteps, approval, appearance, streaming: input.streaming === undefined ? settings.streaming !== false : Boolean(input.streaming) }
   if (typeof input.apiKey === 'string' && input.apiKey.trim()) {
     if (!safeStorage.isEncryptionAvailable()) throw new Error('Windows 凭据加密不可用，未保存 API Key')
     next.encryptedApiKey = safeStorage.encryptString(input.apiKey.trim()).toString('base64')
@@ -96,7 +128,18 @@ function requestApproval(request) {
 async function start() {
   store = createStore(home)
   settings = { ...defaultSettings, ...await store.readSettings() }
-  nativeTheme.themeSource = (settings.appearance ?? 'dark') === 'light' ? 'light' : 'dark'
+  // Serve the wallpaper file straight from the data directory. Only that one folder is
+  // reachable, and only the currently selected file name resolves.
+  protocol.handle('tengyun-wallpaper', request => {
+    const name = settings.wallpaper
+    if (!name) return new Response('no wallpaper selected', { status: 404 })
+    const requested = decodeURIComponent(new URL(request.url).pathname.replace(/^\//, ''))
+    if (requested !== name) return new Response('not found', { status: 404 })
+    const file = join(home, 'wallpaper', name)
+    if (!existsSync(file)) return new Response('missing file', { status: 404 })
+    return net.fetch(pathToFileURL(file).href)
+  })
+  nativeTheme.themeSource = (settings.appearance ?? 'light') === 'dark' ? 'dark' : 'light'
   if (settings.workspace && existsSync(settings.workspace)) workspace = realpathSync(settings.workspace)
   // One-time local migration can pass a credential in the child environment; erase it before tools run.
   const imported = process.env.TENGYUN_IMPORT_SETTINGS
@@ -108,15 +151,47 @@ async function start() {
   }
   tools = createTools({ dataDir: home })
   engine = new AgentEngine({ store, tools })
-  handle('info', () => ({ name: 'Tengyun', version: app.getVersion(), home, workspace, settings: publicSettings() }))
+  handle('info', () => ({ name: 'Tengyun', version: app.getVersion(), home, workspace, settings: publicSettings(), wallpaper: wallpaperPayload() }))
   handle('saveSettings', saveSettings)
   handle('setTheme', async value => {
-    if (!['light', 'dark'].includes(value)) throw new Error('Invalid theme')
-    nativeTheme.themeSource = value
+    if (!APPEARANCES.has(value)) throw new Error('Invalid appearance')
+    // The wallpaper look is a light surface over an image, so the native frame stays light too.
+    nativeTheme.themeSource = value === 'dark' ? 'dark' : 'light'
     settings.appearance = value
     await store.writeSettings(settings)
-    window?.setBackgroundColor(value === 'dark' ? '#0c0c0d' : '#ffffff')
+    window?.setBackgroundColor(value === 'dark' ? '#0c0c0d' : '#f4f4f6')
     return value
+  })
+  handle('chooseWallpaper', async () => {
+    const result = await dialog.showOpenDialog(window, {
+      title: '选择壁纸图片',
+      properties: ['openFile'],
+      filters: [{ name: '图片', extensions: Object.keys(WALLPAPER_TYPES) }],
+    })
+    if (result.canceled || !result.filePaths[0]) return null
+    const picked = result.filePaths[0]
+    const extension = picked.split('.').pop()?.toLowerCase() ?? ''
+    if (!WALLPAPER_TYPES[extension]) throw new Error('请选择 PNG、JPG、WEBP、GIF 或 BMP 图片')
+    const size = statSync(picked).size
+    if (size > MAX_WALLPAPER_BYTES) throw new Error('图片超过 12 MB，请换一张更小的')
+    const directory = join(home, 'wallpaper')
+    mkdirSync(directory, { recursive: true })
+    const name = `wallpaper.${extension}`
+    copyFileSync(picked, join(directory, name))
+    settings.wallpaper = name
+    settings.appearance = 'wallpaper'
+    await store.writeSettings(settings)
+    nativeTheme.themeSource = 'light'
+    window?.setBackgroundColor('#f4f4f6')
+    return { wallpaper: wallpaperPayload(), settings: publicSettings() }
+  })
+  handle('clearWallpaper', async () => {
+    const directory = join(home, 'wallpaper')
+    if (existsSync(directory)) rmSync(directory, { recursive: true, force: true })
+    delete settings.wallpaper
+    if (settings.appearance === 'wallpaper') settings.appearance = 'light'
+    await store.writeSettings(settings)
+    return { wallpaper: null, settings: publicSettings() }
   })
   handle('chooseWorkspace', async () => {
     if (activeRun) throw new Error('任务执行期间不能切换工作目录')

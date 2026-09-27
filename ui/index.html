@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: tengyun-wallpaper:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Tengyun</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="app.js"></script>
@@ -165,12 +165,27 @@
       <div class="field"><label for="setting-api-key">API 密钥<span id="key-hint" class="field-hint">仅用于连接模型</span></label><input id="setting-api-key" type="password" placeholder="输入 API Key" autocomplete="new-password" spellcheck="false"></div>
       <div class="field"><label for="setting-model">模型名称</label><input id="setting-model" type="text" placeholder="deepseek-chat" required autocomplete="off" spellcheck="false"></div>
       <div class="field-row">
-        <div class="field"><label for="setting-max-steps">单次任务最大轮数</label><input id="setting-max-steps" type="number" min="1" max="400" value="60" required><p class="field-help">到达上限后停止，防止无限循环。</p></div>
+        <div class="field"><label for="setting-max-steps">单次任务最大轮数</label><input id="setting-max-steps" type="number" min="1" max="200" value="60" required><p class="field-help">到达上限后停止，防止无限循环。</p></div>
         <div class="field"><label for="setting-approval">写入与命令</label><select id="setting-approval">
           <option value="always">每次确认</option>
-          <option value="writes">只确认危险操作</option>
+          <option value="session">本次任务信任同类操作</option>
           <option value="never">全部自动执行</option>
         </select><p class="field-help" id="approval-help">每次涉及写入或命令时询问你。</p></div>
+      </div>
+      <div class="field">
+        <label>界面风格<span class="field-hint" id="appearance-hint">默认浅色</span></label>
+        <div class="segmented" id="appearance-group" role="radiogroup" aria-label="界面风格">
+          <button type="button" class="segment" data-appearance="light">浅色</button>
+          <button type="button" class="segment" data-appearance="dark">深色</button>
+          <button type="button" class="segment" data-appearance="wallpaper">壁纸</button>
+        </div>
+      </div>
+      <div class="field" id="wallpaper-field">
+        <label>壁纸图片<span class="field-hint" id="wallpaper-hint">未选择</span></label>
+        <div class="wallpaper-row">
+          <button type="button" class="button" id="pick-wallpaper">选择图片…</button>
+          <button type="button" class="button ghost" id="remove-wallpaper">移除壁纸</button>
+        </div>
       </div>
       <p id="settings-error" class="form-error" role="alert" hidden></p>
       <div class="modal-footer"><button class="button ghost" type="button" id="close-settings-2">取消</button><button class="button primary" id="save-settings" type="submit">保存</button></div>

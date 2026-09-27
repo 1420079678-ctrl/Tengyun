@@ -283,13 +283,25 @@ export class AgentEngine {
     this.tools = tools;
     this.fetchImpl = fetchImpl;
     this.active = new Map();
-    this.definitions = new Map([[PLAN_TOOL.name, PLAN_TOOL]]);
-    for (const definition of tools.definitions) {
-      if (!/^[a-zA-Z0-9_-]{1,64}$/.test(definition.name) || this.definitions.has(definition.name)) throw new Error('Tool names must be valid and unique');
+    this.toolMap = null;
+  }
+
+  /**
+   * Built-in tools plus every registered capability, validated once and cached.
+   * Resolved lazily because capability modules are loaded asynchronously.
+   */
+  async tools_() {
+    if (this.toolMap) return this.toolMap;
+    const all = typeof this.tools.allDefinitions === 'function' ? await this.tools.allDefinitions() : this.tools.definitions;
+    const map = new Map([[PLAN_TOOL.name, PLAN_TOOL]]);
+    for (const definition of all) {
+      if (!/^[a-zA-Z0-9_-]{1,64}$/.test(definition.name) || map.has(definition.name)) throw new Error('Tool names must be valid and unique');
       if (definition.parameters?.type !== 'object') throw new Error('Tool arguments must be an object');
       validateDefinition(definition.parameters);
-      this.definitions.set(definition.name, definition);
+      map.set(definition.name, definition);
     }
+    this.toolMap = map;
+    return map;
   }
 
   /** Cancel a running model request, pending approval, or tool operation. */
@@ -301,7 +313,7 @@ export class AgentEngine {
   }
 
   async completion(config, messages, signal, emit, onDelta) {
-    const toolPayload = [...this.definitions.values()]
+    const toolPayload = [...(await this.tools_()).values()]
       .map(({ name, description, parameters }) => ({ type: 'function', function: { name, description, parameters } }));
     const request = stream => ({
       model: config.model, messages, stream,
@@ -491,7 +503,7 @@ export class AgentEngine {
           try {
             if (seenCalls.has(call.id)) throw new Error('Duplicate tool-call ID was refused');
             seenCalls.add(call.id);
-            const definition = this.definitions.get(name);
+            const definition = (await this.tools_()).get(name);
             if (!definition) throw new Error(`Unknown tool: ${name}`);
             if (typeof call.function.arguments !== 'string' || call.function.arguments.length > 256_000) throw new Error('Tool arguments must be bounded JSON text');
             args = JSON.parse(call.function.arguments);
