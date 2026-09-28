@@ -41,7 +41,7 @@
 
 ## 已知问题与环境约束
 
-- 从一个 Electron 应用（本会话所在的 DeepSeek Harness）里启动 `Tengyun.exe` 会立即退出，原因是子进程继承了 `ELECTRON_RUN_AS_NODE`，让 Electron 退化成纯 Node 模式。从资源管理器双击不受影响。需要从其他应用拉起时请先清除该环境变量。
+- 从其他 Electron 应用里启动 `Tengyun.exe` 会立即退出，原因是子进程继承了 `ELECTRON_RUN_AS_NODE`，让 Electron 退化成纯 Node 模式。从资源管理器双击不受影响。需要从其他程序里拉起时，请先清除该环境变量。
 - 桌面 OCR 观测通道在本机会间歇失败，因此界面验证改用 Win32 `PrintWindow` 直接抓窗口（`tools\shot.ps1`），并做了 DPI 感知处理。
 - 老版本存下来的 `maxSteps: 12` 会继续生效（新代码的上限已放宽到 200），需要在设置里手动调高。
 
@@ -51,6 +51,6 @@
 - 没有运行 SWE-bench 或其他可比较基准，不宣称超越现有 Agent。
 - 工具调用在一个任务内仍顺序执行；并行子任务、跨任务调度、MCP 尚未实现。
 - `approval: never` 模式会跳过写入与命令确认，默认模式仍是每次确认。
-- 旧项目（DeepSeek Harness）的插件能力尚未移植：`workspace\plugins` 下有 35 个插件，能力注册表已就位，逐类移植中。
+- 扩展生态尚未提供：能力注册表已就位，现有能力模块为 code / git / web / office 四类。
 
 安装目录：`D:\Tengyun`。独立源码仓库：`D:\TengyunSource`。构建产物与验证脚本：`D:\Tengyun\tools`。源码修改后需重新打包 `app.asar` 才能反映到已安装的程序。
